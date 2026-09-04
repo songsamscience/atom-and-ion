@@ -74,7 +74,7 @@ h1,h2,h3,h4,p{margin:0}
 .app{display:flex;flex-direction:column;height:100dvh;min-height:100dvh}
 
 header.top{
-  height:var(--hdr-h);flex:0 0 auto;display:flex;align-items:center;gap:12px;
+  height:var(--hdr-h);min-height:var(--hdr-h);flex:0 0 auto;display:flex;align-items:center;gap:12px;
   padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line);
   box-shadow:var(--shadow-s);z-index:60;position:relative;
 }
@@ -104,6 +104,14 @@ nav.modes.fade-l.fade-r{-webkit-mask-image:linear-gradient(90deg,transparent,#00
 .mode-btn:hover{background:var(--panel-2);color:var(--ink)}
 .mode-btn[aria-selected="true"]{background:var(--brand);color:#fff;box-shadow:0 2px 8px rgba(47,127,224,.35)}
 .mode-btn .ico{font-size:15px;line-height:1}
+/* 탐구 질문 작성 진행 — 탭에서 바로 읽힌다 */
+.tab-cnt{
+  font-size:10.5px;font-weight:800;padding:1.5px 6px;border-radius:99px;
+  background:var(--panel-2);color:var(--ink-3);font-variant-numeric:tabular-nums;
+  border:1px solid var(--line);line-height:1.4;
+}
+.tab-cnt.full{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.mode-btn[aria-selected="true"] .tab-cnt{background:rgba(255,255,255,.22);color:#fff;border-color:transparent}
 
 .tools{display:flex;gap:5px;flex:0 0 auto;align-items:center}
 .icon-btn{
@@ -173,17 +181,19 @@ html[data-theme="dark"] .icon-btn.ig:hover{background:#3a1f33;color:#ff9ad4}
 main{flex:1 1 auto;min-height:0;position:relative;overflow:hidden}
 .view{position:absolute;inset:0;display:none;overflow:auto;-webkit-overflow-scrolling:touch}
 .view.active{display:block}
+/* 실습 화면(원자 모형·이온 만들기)은 페이지 스크롤 없이 한 화면에서 끝난다 */
+.view.exp{overflow:hidden}
 
-/* 공통 2단 레이아웃 — 왼쪽(실습 무대)을 최대한 넓게 잡는다 */
-.split{display:grid;grid-template-columns:minmax(0,1fr) 348px;gap:14px;padding:14px;min-height:100%;align-items:start}
-.stage-col{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:calc(100dvh - var(--chrome-h, var(--hdr-h)) - 28px)}
-.side-col{display:flex;flex-direction:column;gap:12px;min-width:0}
-/* 넓은 화면에서는 곁줄을 고정 폭으로 두고 남는 공간을 모두 무대에 준다 */
-@media (min-width:1500px){ .split{grid-template-columns:minmax(0,1fr) 366px;gap:16px;padding:16px} }
-@media (max-width:1080px){
-  .split{grid-template-columns:1fr}
-  .stage-col{min-height:auto}
+/* 실습 2단 배치 — 무대가 남는 높이를 전부 가져가고, 관찰 레일만 자기 안에서 스크롤한다 */
+.split{
+  display:grid;grid-template-columns:minmax(0,1fr) var(--rail-w,332px);
+  gap:10px;padding:10px;height:100%;min-height:0;align-items:stretch;
 }
+.stage-col{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0}
+/* 레일을 접으면 무대가 화면 폭을 전부 쓴다 */
+.split.rail-off{grid-template-columns:minmax(0,1fr)}
+.split.rail-off .rail{display:none}
+@media (min-width:1600px){ .split{--rail-w:352px;gap:14px;padding:14px} }
 
 /* 카드 */
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-m);box-shadow:var(--shadow-s)}
@@ -213,7 +223,7 @@ main{flex:1 1 auto;min-height:0;position:relative;overflow:hidden}
 
 /* ===================== 무대(원자 모형) ===================== */
 .stage{
-  position:relative;flex:1 1 auto;min-height:clamp(320px, 58vh, 660px);border-radius:var(--r-l);overflow:hidden;
+  position:relative;flex:1 1 auto;min-height:0;border-radius:var(--r-l);overflow:hidden;
   background:
     radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f4f9ff 55%, #eaf3fd 100%);
   border:1px solid var(--line);box-shadow:var(--shadow-m);
@@ -257,9 +267,149 @@ html[data-theme="dark"] .sbtn{background:rgba(24,37,53,.9)}
 .sbtn.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .sbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
-/* 원자 캔버스 */
-.atom-wrap{position:absolute;inset:0;display:grid;place-items:center;padding:12px 12px 52px}
+/* 원자 캔버스 — 실사용 영역은 (전체 − HUD·이름표 − 조작 독)이다 (§3.1) */
+.atom-wrap{
+  position:absolute;left:14px;right:14px;
+  top:var(--hud-h,58px);bottom:calc(var(--dock-h,88px) + 16px);
+  display:grid;place-items:center;
+}
 .atom{position:relative;width:min(100%,100%);aspect-ratio:1/1;max-height:100%;max-width:100%}
+
+/* ===================== 스테이지 안 조작 독 (§3.1) ===================== */
+.dock{
+  position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:8;
+  max-width:calc(100% - 24px);display:flex;flex-direction:column;gap:5px;align-items:center;
+  padding:8px 10px;border-radius:17px;
+  background:rgba(255,255,255,.78);backdrop-filter:blur(13px) saturate(1.2);
+  border:1px solid var(--line);box-shadow:var(--shadow-m);
+}
+html[data-theme="dark"] .dock{background:rgba(21,33,48,.78);border-color:var(--line-strong)}
+.dock-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap}
+.dgrp{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.dock-sep{width:1px;align-self:stretch;margin:2px 1px;background:var(--line-strong);flex:0 0 auto}
+/* 안내 한 줄 — 문구가 바뀌어도 독 높이가 흔들리지 않게 자리를 미리 잡는다 */
+.dock-tip{
+  font-size:11.5px;font-weight:700;color:var(--ink-3);text-align:center;line-height:1.35;
+  min-height:15px;max-width:720px;
+}
+.dock-tip b{color:var(--ink-2);font-weight:800}
+.dock-tip.warn{color:var(--warn)}
+html[data-theme="dark"] .dock-tip.warn{color:#e8d48a}
+
+/* 독 안 원소 알약 — 누르면 주기율표가 열린다 */
+.el-pill{
+  display:flex;align-items:center;gap:9px;padding:5px 12px 5px 5px;border-radius:99px;
+  border:1px solid var(--line);background:var(--panel);transition:.15s;min-height:44px;text-align:left;
+}
+.el-pill .el-tile{width:34px;height:34px;border-radius:10px}
+.el-pill .el-tile .z{font-size:8px;top:2px;left:4px}
+.el-pill .el-tile .sy{font-size:15px;margin-top:2px}
+.el-pill .meta{min-width:0;display:flex;flex-direction:column;gap:1px;text-align:left}
+.el-pill .meta .n1{display:block;font-weight:800;font-size:14px;letter-spacing:-.02em;line-height:1.15}
+.el-pill .meta .n2{display:block;font-size:10.5px;color:var(--ink-3);font-weight:700;line-height:1.3;
+  max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.el-pill .go{color:var(--ink-3);font-size:15px;flex:0 0 auto;margin-left:2px}
+@media (hover:hover) and (pointer:fine){ .el-pill:hover{border-color:var(--brand);background:var(--brand-soft)} }
+.el-pill:active{transform:scale(.98)}
+
+/* 독 안 아이콘 버튼 — 헤더와 같은 선형 SVG 계열 */
+.dbtn{
+  width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex:0 0 auto;
+  border:1px solid var(--line);background:var(--panel);color:var(--ink-2);transition:.15s;
+}
+.dbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover) and (pointer:fine){ .dbtn:hover{border-color:var(--brand);color:var(--brand)} }
+.dbtn:active{transform:scale(.97)}
+.dbtn:disabled{opacity:.38;cursor:not-allowed;transform:none}
+.dbtn.wide{width:auto;padding:0 14px;gap:7px;font-size:13.5px;font-weight:800}
+.dbtn.pri{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 2px 10px rgba(47,127,224,.32)}
+@media (hover:hover) and (pointer:fine){ .dbtn.pri:hover{background:var(--brand-dark);border-color:var(--brand-dark);color:#fff} }
+.dbtn.pos{color:var(--cation);border-color:color-mix(in srgb,var(--cation) 40%,var(--line))}
+.dbtn.neg{color:var(--anion);border-color:color-mix(in srgb,var(--anion) 40%,var(--line))}
+.dock .stepper{margin:0;gap:6px}
+.dock .st-btn{width:44px;height:44px;border-radius:12px;font-size:19px}
+.dock .st-field{flex:0 0 auto;width:88px;border-radius:12px}
+.dock .st-field input{font-size:21px;padding:5px 0}
+.dock-lb{
+  display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--ink-2);
+  white-space:nowrap;flex:0 0 auto;
+}
+.dock-lb i{width:9px;height:9px;border-radius:50%;background:var(--proton);flex:0 0 auto}
+@media (max-width:820px){
+  .dock-row{flex-wrap:wrap}
+  .dock-lb{display:none}
+  .el-pill .meta .n2{display:none}
+  .dock-tip{font-size:11px}
+}
+
+/* 블러를 못 쓰는 환경에서는 반투명 대신 불투명 표면으로 (§6.1) */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))){
+  .dock,.rail-toggle{background:var(--panel)}
+  .chip,.sbtn{background:var(--panel)}
+}
+
+/* ===================== 관찰 레일 (곁줄) ===================== */
+.rail{
+  display:flex;flex-direction:column;min-width:0;min-height:0;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden;
+}
+.rail-h{display:flex;align-items:center;gap:6px;padding:8px 9px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.rail-tabs{display:flex;gap:3px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+.rail-tabs::-webkit-scrollbar{display:none}
+.rail-tabs button{
+  padding:7px 9px;border-radius:9px;font-size:12px;font-weight:700;color:var(--ink-3);
+  white-space:nowrap;transition:.15s;min-height:36px;
+}
+@media (hover:hover) and (pointer:fine){ .rail-tabs button:hover{background:var(--panel-2);color:var(--ink-2)} }
+.rail-tabs button[aria-selected="true"]{background:var(--brand-soft);color:var(--brand);font-weight:800}
+.rail-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px 13px 16px}
+.rail-panel{display:none}
+.rail-panel.on{display:block}
+.rail-sec+.rail-sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.rail-sec>h4{
+  font-size:12px;font-weight:800;color:var(--ink-3);letter-spacing:.01em;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.rail-sec>h4 .tag{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--ink-3)}
+.rail-note{font-size:11.5px;font-weight:600;color:var(--ink-3);line-height:1.6;margin-top:8px;max-width:34em}
+.rail-note b{color:var(--ink-2);font-weight:800}
+
+/* 레일 접기 — 무대를 화면 폭 전체로 넓힌다 */
+.rail-toggle{
+  position:absolute;right:12px;bottom:calc(var(--dock-h, 88px) + 6px);z-index:8;height:36px;padding:0 12px;border-radius:99px;
+  display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;color:var(--ink-2);
+  background:rgba(255,255,255,.78);backdrop-filter:blur(13px);border:1px solid var(--line);
+  box-shadow:var(--shadow-s);transition:.15s;
+}
+html[data-theme="dark"] .rail-toggle{background:rgba(21,33,48,.78)}
+.rail-toggle svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover) and (pointer:fine){ .rail-toggle:hover{color:var(--brand);border-color:var(--brand)} }
+
+/* 하단 시트 스크림 — 시트가 열려 있는 동안 무대를 조용히 낮춘다 */
+.rail-scrim{
+  position:fixed;inset:0;z-index:140;background:rgba(16,32,50,.42);
+  opacity:0;pointer-events:none;transition:opacity .22s;
+}
+body.sheet-open .rail-scrim{opacity:1;pointer-events:auto}
+@media (min-width:1081px){ .rail-scrim{display:none} }
+
+/* 태블릿·좁은 화면 — 레일을 하단 시트로 내려 무대를 지키다 (§3) */
+@media (max-width:1080px){
+  .split{grid-template-columns:minmax(0,1fr)}
+  .rail{
+    position:fixed;left:0;right:0;bottom:0;z-index:150;height:min(64dvh,520px);
+    border-radius:20px 20px 0 0;border-bottom:0;box-shadow:var(--shadow-l);
+    transform:translateY(102%);transition:transform .26s cubic-bezier(.2,.9,.3,1);
+  }
+  .rail.open{transform:none;z-index:150}
+  .rail-h::before{
+    content:"";position:absolute;left:50%;top:6px;width:40px;height:4px;border-radius:99px;
+    background:var(--line-strong);transform:translateX(-50%);
+  }
+  .rail-h{padding-top:15px;position:relative}
+  .split.rail-off .rail{display:flex}
+}
+@media (min-width:1081px){ .rail-close{display:none} }
 
 /* 전자구름(큰 구) */
 .cloud{
@@ -375,31 +525,19 @@ html[data-theme="dark"] .nucleus:not(.simple)::after{border-color:rgba(255,130,1
 .nucleus.simple.neg{background:radial-gradient(circle at 32% 27%, #9fd4ff 0%, var(--electron) 58%, #10508f 100%);
   box-shadow:inset -6px -8px 16px rgba(10,50,100,.4), 0 6px 18px rgba(31,122,224,.35)}
 
-/* 원자 이름 라벨 */
+/* 원자 이름 라벨 — 읽는 곳은 위, 누르는 곳은 아래(§3.1) */
 .atom-caption{
-  position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:6;text-align:center;
-  background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border:1px solid var(--line);
-  padding:7px 16px;border-radius:99px;box-shadow:var(--shadow-s);white-space:nowrap;
+  position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:5;text-align:center;
+  padding:0 8px;max-width:min(58%,440px);white-space:nowrap;pointer-events:none;
 }
-html[data-theme="dark"] .atom-caption{background:rgba(24,37,53,.9)}
-.atom-caption .nm{font-weight:900;font-size:15px;letter-spacing:-.02em}
-.atom-caption .sub{font-size:11.5px;color:var(--ink-3);font-weight:700}
-
-/* ===================== 사이드 위젯 ===================== */
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stat{
-  border:1px solid var(--line);border-radius:var(--r-s);padding:9px 8px;text-align:center;background:var(--panel-2);
+.atom-caption .nm{font-weight:800;font-size:15.5px;letter-spacing:-.03em;line-height:1.15}
+.atom-caption .sub{font-size:11px;color:var(--ink-3);font-weight:700;line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis}
+.atom-caption .sub b{color:var(--ink-2)}
+@media (max-width:820px){
+  .atom-caption{top:44px;left:12px;right:12px;transform:none;max-width:none}
+  .atom-caption .nm{font-size:14.5px}
 }
-.stat .lb{font-size:10.5px;font-weight:800;color:var(--ink-3);display:flex;align-items:center;justify-content:center;gap:4px}
-.stat .lb i{width:8px;height:8px;border-radius:50%;display:inline-block}
-.stat .vl{font-size:22px;font-weight:900;letter-spacing:-.04em;margin-top:1px;font-variant-numeric:tabular-nums}
-.stat.p{background:linear-gradient(180deg,#fff5f4,#ffecea)}
-.stat.n{background:linear-gradient(180deg,#f6ffe9,#eefad9)}
-.stat.e{background:linear-gradient(180deg,#f0f7ff,#e4f0ff)}
-html[data-theme="dark"] .stat.p{background:linear-gradient(180deg,#3a1f1c,#2c1917)}
-html[data-theme="dark"] .stat.n{background:linear-gradient(180deg,#26330f,#1d280c)}
-html[data-theme="dark"] .stat.e{background:linear-gradient(180deg,#152a44,#112036)}
-.stat.p .lb i{background:var(--proton)} .stat.n .lb i{background:var(--neutron)} .stat.e .lb i{background:var(--electron)}
 
 .kv{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
 .kv:last-child{border-bottom:0}
@@ -440,22 +578,12 @@ html[data-theme="dark"] .stat.e{background:linear-gradient(180deg,#152a44,#11203
 .slider:active::-webkit-slider-thumb{transform:scale(1.15)}
 .slider::-moz-range-thumb{width:19px;height:19px;border-radius:50%;background:var(--brand);border:3px solid #fff;cursor:pointer}
 
-/* ===================== 원소 선택 버튼 ===================== */
-.el-pick{
-  display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border-radius:var(--r-m);
-  border:1px solid var(--line);background:var(--panel-2);transition:.15s;text-align:left;
-}
-.el-pick:hover{border-color:var(--brand);background:var(--brand-soft)}
 .el-tile{
   width:50px;height:50px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;
   color:#fff;font-weight:900;line-height:1;box-shadow:var(--shadow-s);position:relative;
 }
 .el-tile .z{position:absolute;top:3px;left:5px;font-size:9px;font-weight:800;opacity:.9}
 .el-tile .sy{font-size:21px;letter-spacing:-.03em;margin-top:3px}
-.el-pick .meta{flex:1 1 auto;min-width:0}
-.el-pick .meta .n1{font-weight:900;font-size:15px;letter-spacing:-.02em}
-.el-pick .meta .n2{font-size:11.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.el-pick .go{color:var(--ink-3);font-size:18px;flex:0 0 auto}
 
 /* ===================== 주기율표 ===================== */
 .modal-bd{
@@ -857,7 +985,7 @@ html[data-theme="dark"] .pcount td.e{background:#152a44;border-color:#2b5488}
 .live-hint{font-size:11.5px;font-weight:700;color:var(--ink-3);margin-top:7px;line-height:1.5}
 
 /* 토스트 */
-.toast-box{position:fixed;left:50%;bottom:calc(22px + var(--foot-h, 0px));transform:translateX(-50%);z-index:400;display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none}
+.toast-box{position:fixed;left:50%;bottom:calc(20px + var(--toast-lift, 0px));transform:translateX(-50%);z-index:400;display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none}
 .toast{
   padding:10px 18px;border-radius:99px;background:rgba(23,50,77,.94);color:#fff;font-size:13px;font-weight:800;
   box-shadow:var(--shadow-m);animation:toastIn .25s;white-space:nowrap;backdrop-filter:blur(8px);
@@ -877,12 +1005,12 @@ html[data-theme="dark"] .pcount td.e{background:#152a44;border-color:#2b5488}
 .note{background:var(--warn-soft);border:1px solid #f0e0a8;border-radius:11px;padding:10px 12px;font-size:12.5px;color:#7a6210;font-weight:700;line-height:1.55}
 html[data-theme="dark"] .note{color:#e8d48a}
 
-/* 맨 아래 저작권 띠 */
+/* 저작권 — 화면 높이를 먹지 않도록 도움말 모달 안에 둔다 (§4) */
 .appfoot{
-  flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:5px 11px;flex-wrap:wrap;
-  padding:6px 14px;background:var(--panel);border-top:1px solid var(--line);
-  font-size:11px;font-weight:700;color:var(--ink-3);line-height:1.5;
-  text-align:center;position:relative;z-index:55;word-break:keep-all;
+  display:flex;align-items:center;justify-content:center;gap:5px 11px;flex-wrap:wrap;
+  margin-top:14px;padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);
+  border-radius:12px;font-size:11.5px;font-weight:700;color:var(--ink-3);line-height:1.5;
+  text-align:center;word-break:keep-all;
 }
 .appfoot b{color:var(--ink-2);font-weight:900}
 .appfoot .af-sep{width:1px;height:11px;background:var(--line-strong);flex:0 0 auto}
@@ -1091,10 +1219,29 @@ html[data-theme="dark"] .lv-tag.hs{background:#2b2350;color:#c3b0ff}
 
 /* 학습자 정보 입력 줄 — 상단바 바로 아래에 늘 펼쳐 두어 팝업 없이 바로 적는다 */
 .stubar{
-  flex:0 0 auto;display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;
-  padding:7px 14px;background:var(--panel-2);border-bottom:1px solid var(--line);
-  position:relative;z-index:55;
+  position:absolute;top:calc(var(--chrome-h, var(--hdr-h)) + 8px);right:12px;z-index:130;
+  width:min(430px, calc(100vw - 24px));
+  display:none;align-items:center;gap:10px 12px;flex-wrap:wrap;
+  padding:13px 15px;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;box-shadow:var(--shadow-m);
 }
+.stubar.open{display:flex;animation:pop .2s cubic-bezier(.2,.9,.3,1.2)}
+.stubar::before{
+  content:"";position:absolute;top:-5px;right:calc(var(--stu-arrow, 118px));width:9px;height:9px;
+  transform:rotate(45deg);background:var(--panel);
+  border-left:1px solid var(--line);border-top:1px solid var(--line);
+}
+/* 헤더의 학습자 칩 — 이름을 적으면 이름이 보인다 */
+.stu-chip{
+  display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 11px;border-radius:99px;
+  border:1px solid var(--line);background:var(--panel-2);color:var(--ink-2);
+  font-size:12.5px;font-weight:700;transition:.15s;max-width:150px;
+}
+.stu-chip svg{width:17px;height:17px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.stu-chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stu-chip.set{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+@media (hover:hover) and (pointer:fine){ .stu-chip:hover{border-color:var(--line-strong);color:var(--ink)} }
+.stu-chip[aria-expanded="true"]{border-color:var(--brand);color:var(--brand)}
 .stubar .sb-ico{font-size:15px;line-height:1;flex:0 0 auto}
 .sb-fields{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:0 0 auto}
 .sb-f{display:flex;align-items:center;gap:5px;flex:0 0 auto}
@@ -1109,7 +1256,7 @@ html[data-theme="dark"] .lv-tag.hs{background:#2b2350;color:#c3b0ff}
 .sb-f input:focus{border-color:var(--brand);background:var(--panel);box-shadow:0 0 0 3px var(--focus)}
 .sb-f.invalid input{border-color:var(--bad);background:var(--bad-soft)}
 .stubar.flash{animation:sbFlash .9s ease}
-@keyframes sbFlash{0%,100%{background:var(--panel-2)}25%,60%{background:var(--bad-soft)}}
+@keyframes sbFlash{0%,100%{border-color:var(--line)}25%,60%{border-color:var(--bad);box-shadow:0 0 0 4px var(--bad-soft), var(--shadow-m)}}
 /* 개인정보 안내 — 저장하지 않는다는 사실을 늘 보이게 둔다 */
 .sb-note{
   display:block;margin-left:auto;flex:0 1 auto;
@@ -1126,26 +1273,6 @@ html[data-theme="dark"] .lv-tag.hs{background:#2b2350;color:#c3b0ff}
 .field input:focus{border-color:var(--brand);background:var(--panel)}
 .field-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
 @media (max-width:460px){.field-row{grid-template-columns:1fr 1fr}}
-
-/* ===================== 탐구 질문 바로가기 (원자·이온 화면) ===================== */
-.inq-jump{
-  display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;text-align:left;
-  border:1px solid var(--line);border-radius:var(--r-m);background:var(--panel);
-  box-shadow:var(--shadow-s);transition:.15s;
-}
-.inq-jump:hover{border-color:var(--brand);background:var(--brand-soft);transform:translateY(-1px)}
-.inq-jump .ic{
-  width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;
-  background:var(--brand-soft);font-size:15px;
-}
-.inq-jump .tx{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}
-.inq-jump .tx b{font-size:12.5px;font-weight:900;letter-spacing:-.02em}
-.inq-jump .tx i{font-size:10.5px;font-style:normal;font-weight:700;color:var(--ink-3);line-height:1.35}
-.inq-jump .pg{
-  flex:0 0 auto;font-size:10.5px;font-weight:900;color:var(--brand-dark);
-  background:var(--brand-soft);padding:3px 8px;border-radius:99px;white-space:nowrap;
-}
-.inq-jump .go{flex:0 0 auto;color:var(--ink-3);font-size:12px;font-weight:900}
 
 /* ===================== 탐구 질문 화면 ===================== */
 .inq-wrap{max-width:1320px;margin:0 auto;padding:14px;display:flex;flex-direction:column;gap:12px}
@@ -1392,32 +1519,39 @@ html[data-theme="dark"] .rep-preview{background:#f7fafc}
   .rep h2{break-after:avoid;page-break-after:avoid}
 }
 
-@media (max-width:1180px){
-  /* 모드 탭이 한두 개만 보이지 않도록 탭의 아이콘부터 덜어낸다 */
+/* 탭이 헤더를 나눠 쓰는 폭에서만 아이콘을 덜어낸다 (아래에서는 탭이 제 줄을 갖는다) */
+@media (max-width:1400px) and (min-width:1181px){
   .mode-btn .ico{display:none}
   .mode-btn{padding:7px 11px}
 }
 @media (max-width:980px){
   .lv-seg button{padding:5px 9px;font-size:11.5px}
-  /* 안내 문구를 오른쪽 끝에 붙이지 않고 다음 줄로 내린다 */
-  .sb-note{margin-left:0;flex:1 1 100%}
 }
+/* 팝오버 안 안내 문구는 늘 제 줄에 둔다 */
+.sb-note{margin-left:0;flex:1 1 100%}
 @media (max-width:520px){
   .brand-txt{display:none}
+  .lv-seg button{letter-spacing:-.04em}
   .tools .icon-btn{width:30px;height:30px}
   .tools{gap:2px}
   .sns-sep{display:none}
   header.top{gap:8px;padding:0 10px}
   .lv-seg button{padding:4px 8px;font-size:11px}
 }
-/* 한 단 배치로 바뀌면 무대가 납작해지지 않도록 최소 높이를 다시 준다
-   (.stage 기본 규칙보다 뒤에 있어야 적용된다) */
-@media (max-width:1080px){
-  .stage{min-height:min(68vh,460px)}
-}
 @media (max-width:1024px){
   /* 좁은 화면에서는 SNS를 도움말 모달의 알약 버튼으로 옮겨 탭 자리를 넓힌다 */
   .icon-btn.sns,.sns-sep{display:none}
+}
+/* 탭이 눌려 7개 중 두세 개만 보이는 것을 막는다 — 탭을 헤더 아래 제 줄로 내린다 */
+@media (max-width:1180px){
+  header.top{height:auto;flex-wrap:wrap;align-items:center;padding:5px 10px 0;row-gap:0}
+  .brand{order:1}
+  .tools{order:2;margin-left:auto;min-width:0;flex:1 1 auto;justify-content:flex-end;
+         overflow-x:auto;scrollbar-width:none;padding:2px 0}
+  .tools::-webkit-scrollbar{display:none}
+  nav.modes{order:3;flex:1 0 100%;padding:3px 0 5px;min-height:40px;align-items:center}
+  .stu-chip .nm{display:none}
+  .stu-chip{padding:0 8px;max-width:none}
 }
 @media (max-width:640px){
   :root{--hdr-h:52px}
@@ -1430,11 +1564,8 @@ html[data-theme="dark"] .rep-preview{background:#f7fafc}
   .tools{gap:3px}
 }
 @media (max-width:560px){
-  /* 저작권은 한 줄만 남긴다 */
-  .appfoot{padding:5px 10px;font-size:10px}
-  .appfoot .af-sep,.appfoot .af-more{display:none}
-  /* 좁은 화면에서는 🎓 이 한 줄을 통째로 차지하므로 덜어내고 네 칸을 한 줄에 넣는다 */
-  .stubar{padding:6px 10px;gap:6px}
+  .appfoot .af-sep{display:none}
+  .stubar{padding:11px 12px;gap:8px}
   .stubar .sb-ico{display:none}
   .sb-fields{gap:6px}
   .sb-f{gap:4px}
@@ -1463,7 +1594,8 @@ html[data-theme="dark"]{ --focus:rgba(95,168,255,.5); --press:rgba(255,255,255,.
 /* ---- 공통: 키보드 초점 ---- */
 .btn:focus-visible,.sbtn:focus-visible,.icon-btn:focus-visible,.opt:focus-visible,
 .seg button:focus-visible,.sw:focus-visible,.iso-chip:focus-visible,.ion-item:focus-visible,
-.real-btn:focus-visible,.poly-card:focus-visible,.el-pick:focus-visible,.pt-cell:focus-visible,
+.real-btn:focus-visible,.poly-card:focus-visible,.el-pill:focus-visible,
+.dbtn:focus-visible,.rail-tabs button:focus-visible,.rail-toggle:focus-visible,.stu-chip:focus-visible,.pt-cell:focus-visible,
 .inq-q:focus-visible,.sb-f input:focus-visible,.score-chip:focus-visible,.lv-seg button:focus-visible,
 .typing:focus-visible,.wbox:focus-visible,.field input:focus-visible,.search input:focus-visible{
   outline:3px solid var(--focus);outline-offset:2px;
@@ -1486,15 +1618,8 @@ html[data-theme="dark"]{ --focus:rgba(95,168,255,.5); --press:rgba(255,255,255,.
   background:var(--panel-2)!important;border-color:var(--line)!important;color:var(--ink-3)!important;filter:grayscale(.45);
 }
 
-/* ‘전자 잃기 / 얻기’처럼 반복해서 누르는 버튼은 더 크게 */
-#loseE,#gainE{min-height:56px;font-size:15px;border-radius:13px;letter-spacing:-.02em}
-.e-hint{
-  display:none;margin-top:8px;padding:9px 11px;border-radius:10px;
-  background:var(--warn-soft);border:1px solid #f0e0a8;color:#7a6210;
-  font-size:12px;font-weight:800;line-height:1.5;
-}
-html[data-theme="dark"] .e-hint{color:#e8d48a}
-.e-hint.show{display:block}
+/* ‘전자 잃기 / 얻기’는 반복해서 누르는 주 조작이므로 독 안에서 조금 더 크게 */
+#loseE,#gainE{min-height:48px;font-size:14px;letter-spacing:-.02em}
 
 /* ---- 아이콘 버튼 · 무대 버튼 ---- */
 .icon-btn{min-width:var(--tap-sm);min-height:var(--tap-sm);touch-action:manipulation}
@@ -1582,8 +1707,7 @@ html[data-theme="dark"] .e-hint{color:#e8d48a}
 .real-btn.sel{border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 2px var(--focus)}
 .poly-card{min-height:150px;touch-action:manipulation}
 .poly-card:active{transform:scale(.98)}
-.el-pick{min-height:70px;touch-action:manipulation}
-.el-pick:active{transform:scale(.99);background:var(--press)}
+.el-pill,.dbtn{touch-action:manipulation}
 .pt-cell{touch-action:manipulation}
 .pt-cell:active{transform:scale(1.05)}
 .inq-q{min-height:52px;touch-action:manipulation}
@@ -1690,7 +1814,7 @@ html[data-theme="dark"] .e-hint{color:#e8d48a}
   .wmeta{gap:10px}
   .chk{min-height:48px}
   /* 손가락으로 눌렀을 때 hover 잔상이 남지 않도록 */
-  .btn,.opt,.ion-item,.real-btn,.poly-card,.el-pick{transition:transform .1s, background .12s, border-color .12s}
+  .btn,.opt,.ion-item,.real-btn,.poly-card,.el-pill{transition:transform .1s, background .12s, border-color .12s}
 }
 
 /* 빈 상태 행은 카드로 쌓지 않는다 */
@@ -1706,15 +1830,6 @@ html[data-theme="dark"] .e-hint{color:#e8d48a}
 
 
 /* ===================== 숫자 스테퍼 (양성자 수 조절) ===================== */
-.stepper-block{
-  border:1px solid var(--line);border-radius:var(--r-m);background:var(--panel-2);padding:11px 12px;
-}
-.stepper-h{display:flex;flex-direction:column;gap:1px;margin-bottom:9px}
-.stepper-h .t{font-size:12.5px;font-weight:900;color:var(--ink);letter-spacing:-.02em;display:flex;align-items:center;gap:5px}
-.stepper-h .t i{width:9px;height:9px;border-radius:50%;background:var(--proton);flex:0 0 auto;font-style:normal}
-.stepper-h .d{font-size:11px;font-weight:700;color:var(--ink-3);line-height:1.45}
-.stepper-h .d b{color:var(--ink-2)}
-
 .stepper{display:flex;align-items:stretch;gap:8px}
 .st-btn{
   flex:0 0 auto;width:var(--tap);height:var(--tap);border-radius:12px;
@@ -1862,7 +1977,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
     <button class="mode-btn" role="tab" aria-selected="false" data-view="dict"><span class="ico">📖</span>이온 사전</button>
     <button class="mode-btn" role="tab" aria-selected="false" data-view="quiz"><span class="ico">✏️</span>이온 명명법 연습</button>
     <button class="mode-btn" role="tab" aria-selected="false" data-view="game"><span class="ico">🎮</span>이온 명명법 게임</button>
-    <button class="mode-btn" role="tab" aria-selected="false" data-view="inq"><span class="ico">📝</span>탐구 질문</button>
+    <button class="mode-btn" role="tab" aria-selected="false" data-view="inq"><span class="ico">📝</span>탐구 질문<span class="tab-cnt" data-inqcnt="short">0/10</span></button>
   </nav>
 
   <div class="tools">
@@ -1870,6 +1985,10 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
       <button data-lv="ms" aria-pressed="true" title="중학교 수준으로 보기">중학교</button>
       <button data-lv="hs" aria-pressed="false" title="고등학교 수준으로 보기">고등학교</button>
     </div>
+    <button class="stu-chip" id="btnStu" title="학번·이름 입력 — 리포트와 저장 이미지에 인쇄됩니다" aria-label="학번과 이름 입력" aria-expanded="false" aria-controls="stuBar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 8.6 12 4.6l8.8 4-8.8 4z"/><path d="M7 10.8v4.4c0 1.5 2.2 2.6 5 2.6s5-1.1 5-2.6v-4.4"/></svg>
+      <span class="nm" id="stuChipName">이름 입력</span>
+    </button>
     <button class="icon-btn" id="btnTheory" title="이론 학습 자료 (T)" aria-label="이론 학습 자료 열기">
       <svg viewBox="0 0 24 24"><path d="M12 6.2C10.4 4.9 8.3 4.3 5.6 4.3c-.9 0-1.6.7-1.6 1.6v11.2c0 .9.7 1.6 1.6 1.6 2.7 0 4.8.6 6.4 1.9 1.6-1.3 3.7-1.9 6.4-1.9.9 0 1.6-.7 1.6-1.6V5.9c0-.9-.7-1.6-1.6-1.6-2.7 0-4.8.6-6.4 1.9z"/><path d="M12 6.2v14.4"/></svg>
     </button>
@@ -1943,7 +2062,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
 <main>
 
 <!-- ============ 1. 원자 모형 ============ -->
-<section class="view active" id="view-atom">
+<section class="view exp active" id="view-atom">
  <div class="split">
   <div class="stage-col">
     <div class="stage">
@@ -1954,179 +2073,193 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
           <span class="chip e"><i class="dot"></i>전자 <b id="a-e">1</b></span>
         </div>
         <div class="stage-ctrl">
-          <button class="sbtn on" id="btnPlay" title="전자 움직임 재생/정지 (Space)">
+          <button class="sbtn on" id="btnPlay" title="전자 움직임 재생/정지 (Space)" aria-label="전자 움직임 재생 또는 정지">
             <svg viewBox="0 0 24 24" id="icoPlay"><rect x="7" y="5" width="3.4" height="14" rx="1.1" fill="currentColor" stroke="none"/><rect x="13.6" y="5" width="3.4" height="14" rx="1.1" fill="currentColor" stroke="none"/></svg>
           </button>
-          <button class="sbtn" id="btnSlow" title="속도 조절">
+          <button class="sbtn" id="btnSlow" title="전자 속도 조절" aria-label="전자 속도 조절">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.4V12l3 1.8"/></svg>
           </button>
-          <button class="sbtn" id="btnNuc" title="원자핵으로 전환 (N)">
+          <button class="sbtn" id="btnNuc" title="원자핵으로 전환 (N)" aria-label="원자핵으로 전환">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9.6" ry="4.4"/><ellipse cx="12" cy="12" rx="9.6" ry="4.4" transform="rotate(60 12 12)"/></svg>
           </button>
-          <button class="sbtn on" id="btnLabels" title="껍질 이름 표시">
+          <button class="sbtn on" id="btnLabels" title="껍질 이름 표시" aria-label="껍질 이름 표시">
             <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h11M4 17h7"/></svg>
           </button>
-          <button class="sbtn" id="btnShot" title="모형 이미지 저장">
+          <button class="sbtn" id="btnShot" title="모형 이미지 저장" aria-label="모형 이미지 저장">
             <svg viewBox="0 0 24 24"><path d="M4 8.5h3.2L9 6h6l1.8 2.5H20v10H4z"/><circle cx="12" cy="13" r="3.2"/></svg>
           </button>
         </div>
-        <div class="atom-wrap"><div class="atom" id="atomBox"></div></div>
+
         <div class="atom-caption">
           <div class="nm" id="a-cap">수소 원자</div>
           <div class="sub" id="a-capsub">H · 원자 번호 1 · 질량수 1</div>
         </div>
+
+        <div class="atom-wrap"><div class="atom" id="atomBox"></div></div>
+
+        <!-- 조작 독 — 원소를 고르고 양성자 수를 바꾸는 핵심 조작 (§3.1) -->
+        <div class="dock" id="dockAtom">
+          <div class="dock-row">
+            <span class="dgrp">
+            <button class="dbtn" id="prevEl" title="이전 원소 (←)" aria-label="이전 원소">
+              <svg viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+            </button>
+            <button class="el-pill" id="pickAtom" title="주기율표에서 원소 고르기 (P)" aria-label="주기율표에서 원소 고르기">
+              <span class="el-tile" id="pk-tile"><span class="z">1</span><span class="sy">H</span></span>
+              <span class="meta"><span class="n1" id="pk-n1">수소</span><span class="n2" id="pk-n2">Hydrogen · 1족 · 1주기</span></span>
+              <span class="go">▸</span>
+            </button>
+            <button class="dbtn" id="nextEl" title="다음 원소 (→)" aria-label="다음 원소">
+              <svg viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+            </button>
+            <button class="dbtn" id="randEl" title="무작위 원소로 이동" aria-label="무작위 원소">
+              <svg viewBox="0 0 24 24"><rect x="4.2" y="4.2" width="15.6" height="15.6" rx="4.2"/><circle cx="9" cy="9" r="1.25" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.25" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.25" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.25" fill="currentColor" stroke="none"/></svg>
+            </button>
+            </span>
+            <span class="dock-sep" aria-hidden="true"></span>
+            <span class="dgrp">
+            <span class="dock-lb" aria-hidden="true"><i></i>양성자</span>
+            <span class="stepper" id="pStepAtom">
+              <button class="st-btn" type="button" data-d="-1" aria-label="양성자 1개 줄이기" title="양성자 1개 줄이기 (길게 누르면 빠르게)">−</button>
+              <span class="st-field">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" id="pNumAtom" value="1" aria-label="양성자 수" autocomplete="off" spellcheck="false">
+                <i>개</i>
+              </span>
+              <button class="st-btn" type="button" data-d="1" aria-label="양성자 1개 늘리기" title="양성자 1개 늘리기 (길게 누르면 빠르게)">＋</button>
+            </span>
+            </span>
+          </div>
+          <div class="dock-tip" id="pNoteAtom" data-base="dock-tip" role="status"></div>
+        </div>
+
+        <button class="rail-toggle" id="railBtnAtom" aria-expanded="true" aria-controls="railAtom">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M14.5 4.5v15"/></svg>
+          <span class="lb">관찰 패널</span>
+        </button>
       </div>
     </div>
   </div>
 
-  <div class="side-col">
-    <div class="card">
-      <div class="card-h"><h3>원소 선택</h3><span class="hint">주기율표 118종</span></div>
-      <div class="card-b tight">
-        <button class="el-pick" id="pickAtom">
-          <div class="el-tile" id="pk-tile"><span class="z">1</span><span class="sy">H</span></div>
-          <div class="meta"><div class="n1" id="pk-n1">수소</div><div class="n2" id="pk-n2">Hydrogen · 1족 · 1주기</div></div>
-          <div class="go">▸</div>
-        </button>
-        <div class="btn-row" style="margin-top:9px">
-          <button class="btn sm" id="prevEl">◂ 이전</button>
-          <button class="btn sm" id="nextEl">다음 ▸</button>
-          <button class="btn sm" id="randEl">🎲 무작위</button>
-        </div>
+  <aside class="rail" id="railAtom" aria-label="원자 관찰 패널">
+    <div class="rail-h">
+      <div class="rail-tabs" role="tablist" aria-label="관찰 항목">
+        <button role="tab" aria-selected="true"  data-rp="shell">껍질</button>
+        <button role="tab" aria-selected="false" data-rp="charge">전하량</button>
+        <button role="tab" aria-selected="false" data-rp="iso" class="hs-only">동위원소</button>
+        <button role="tab" aria-selected="false" data-rp="cmp">기록장</button>
+        <button role="tab" aria-selected="false" data-rp="view">보기</button>
       </div>
+      <button class="dbtn rail-close" id="railCloseAtom" aria-label="관찰 패널 닫기" title="닫기">
+        <svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+      </button>
     </div>
 
-    <div class="card">
-      <div class="card-h"><h3>입자 수</h3><span class="hint" id="isoTag">가장 흔한 동위원소</span></div>
-      <div class="card-b">
-        <div class="stat-grid">
-          <div class="stat p"><div class="lb"><i></i>양성자</div><div class="vl" id="s-p">1</div></div>
-          <div class="stat n"><div class="lb"><i></i>중성자</div><div class="vl" id="s-n">0</div></div>
-          <div class="stat e"><div class="lb"><i></i>전자</div><div class="vl" id="s-e">1</div></div>
+    <div class="rail-body">
+      <!-- 전자 껍질 -->
+      <div class="rail-panel on" data-rp="shell">
+        <div class="rail-sec">
+          <h4>껍질별 전자 수</h4>
+          <div class="shell-bar" id="atomShells"></div>
+          <div style="margin-top:11px">
+            <div class="kv"><span class="k">전자 껍질 수</span><span class="v" id="s-nshell">1</span></div>
+            <div class="kv"><span class="k">가장 바깥 껍질의 전자 수</span><span class="v" id="s-valence">1</span></div>
+            <div class="kv"><span class="k">전자 껍질 배치</span><span class="v" id="s-shell">1</span></div>
+          </div>
+          <div class="hs-only" id="octetBox" style="margin-top:10px"></div>
+          <p class="rail-note">
+            전자 껍질은 원자핵에서 가까운 순서대로 <b>K, L, M, N</b> … 이라고 부릅니다.
+            각 껍질에는 최대 K 2개, L 8개, M 18개까지 들어갈 수 있습니다.
+          </p>
         </div>
+      </div>
 
-        <div class="stepper-block" style="margin-top:12px">
-          <div class="stepper-h">
-            <span class="t"><i></i>양성자 수 조절</span>
-            <span class="d">숫자를 직접 쓰거나 <b>＋ −</b> 버튼으로 바꿔 보세요. 양성자 수가 바뀌면 <b>원소의 종류</b>가 달라집니다.</span>
+      <!-- 전하량 -->
+      <div class="rail-panel" data-rp="charge">
+        <div class="rail-sec">
+          <h4>전체 전하량 계산<span class="tag">중성인가?</span></h4>
+          <div class="seg" id="chargeUnit" style="margin-bottom:9px">
+            <button aria-pressed="true" data-unit="rel">상대 전하 (+1 / −1)</button>
+            <button aria-pressed="false" data-unit="c">실제 전하량 (C)</button>
           </div>
-          <div class="stepper" id="pStepAtom">
-            <button class="st-btn" type="button" data-d="-1" aria-label="양성자 1개 줄이기" title="양성자 1개 줄이기 (길게 누르면 빠르게)">−</button>
-            <span class="st-field">
-              <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" id="pNumAtom" value="1" aria-label="양성자 수" autocomplete="off" spellcheck="false">
-              <i>개</i>
-            </span>
-            <button class="st-btn" type="button" data-d="1" aria-label="양성자 1개 늘리기" title="양성자 1개 늘리기 (길게 누르면 빠르게)">＋</button>
+          <div class="charge-calc">
+            <div class="cc-row p">
+              <div class="lab"><i></i><span id="cc-plab">양성자 1개 × (+1)</span></div>
+              <div class="num" id="cc-pval">+1</div>
+            </div>
+            <div class="cc-row e">
+              <div class="lab"><i></i><span id="cc-elab">전자 1개 × (−1)</span></div>
+              <div class="num" id="cc-eval">−1</div>
+            </div>
+            <div class="cc-row sum">
+              <div class="lab">전체 전하량 합계</div>
+              <div class="num" id="cc-sum">0</div>
+            </div>
+            <div class="verdict neutral" id="cc-verdict">전기적으로 중성 <small>양성자의 (+)전하와 전자의 (−)전하가 완전히 상쇄됩니다</small></div>
           </div>
-          <div class="stepper-cap" id="pCapAtom"></div>
-          <div class="stepper-note" id="pNoteAtom"></div>
+          <p class="rail-note">
+            양성자 1개의 전하량 = +1.6×10⁻¹⁹ C, 전자 1개의 전하량 = −1.6×10⁻¹⁹ C, 중성자는 전하가 없습니다(0).
+          </p>
         </div>
+      </div>
 
-        <div style="margin-top:12px" class="hs-only">
-          <div style="font-size:11.5px;font-weight:900;color:var(--ink-3);margin-bottom:6px">
-            동위원소 선택 <span style="font-weight:700">— 실제로 존재하는 것만 고를 수 있습니다</span>
-          </div>
+      <!-- 동위원소 (고등학교) -->
+      <div class="rail-panel" data-rp="iso">
+        <div class="rail-sec">
+          <h4>동위원소 고르기<span class="tag" id="isoTag">가장 흔한 동위원소</span></h4>
           <div class="iso-list" id="isoList"></div>
           <div class="iso-note" id="isoNote"></div>
-        </div>
-        <div style="margin-top:10px">
-          <div class="kv hs-only"><span class="k">질량수 (양성자 + 중성자)</span><span class="v" id="s-mass">1</span></div>
-          <div class="kv"><span class="k">전자 껍질 배치</span><span class="v" id="s-shell">1</span></div>
-        </div>
-        <p class="ms-only" style="font-size:11px;color:var(--ink-3);font-weight:700;margin-top:9px;line-height:1.5">
-          중학교 과정에서는 <b>양성자 수가 원소의 종류를 정한다</b>는 것까지 다룹니다.
-          질량수와 동위원소는 <b>고등학교 모드</b>에서 볼 수 있습니다.
-        </p>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><h3>전자 껍질</h3><span class="hint">껍질 이름과 전자 수</span></div>
-      <div class="card-b">
-        <div class="shell-bar" id="atomShells"></div>
-        <div style="margin-top:11px">
-          <div class="kv"><span class="k">전자 껍질 수</span><span class="v" id="s-nshell">1</span></div>
-          <div class="kv"><span class="k">가장 바깥 껍질의 전자 수</span><span class="v" id="s-valence">1</span></div>
-        </div>
-        <div class="hs-only" id="octetBox" style="margin-top:10px"></div>
-        <p style="font-size:11px;color:var(--ink-3);font-weight:700;margin-top:8px;line-height:1.5">
-          전자 껍질은 원자핵에서 가까운 순서대로 K, L, M, N … 이라고 부릅니다. 각 껍질에는 최대 K 2개, L 8개, M 18개까지 들어갈 수 있습니다.
-        </p>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><h3>전체 전하량 계산</h3><span class="hint">중성인가?</span></div>
-      <div class="card-b tight">
-        <div class="seg" id="chargeUnit" style="margin-bottom:9px">
-          <button aria-pressed="true" data-unit="rel">상대 전하 (+1 / −1)</button>
-          <button aria-pressed="false" data-unit="c">실제 전하량 (C)</button>
-        </div>
-        <div class="charge-calc">
-          <div class="cc-row p">
-            <div class="lab"><i></i><span id="cc-plab">양성자 1개 × (+1)</span></div>
-            <div class="num" id="cc-pval">+1</div>
+          <div style="margin-top:11px">
+            <div class="kv"><span class="k">질량수 (양성자 + 중성자)</span><span class="v" id="s-mass">1</span></div>
           </div>
-          <div class="cc-row e">
-            <div class="lab"><i></i><span id="cc-elab">전자 1개 × (−1)</span></div>
-            <div class="num" id="cc-eval">−1</div>
+          <p class="rail-note">양성자 수는 같고 중성자 수만 다른 원자를 <b>동위원소</b>라고 합니다. 실제로 존재하는 것만 고를 수 있습니다.</p>
+        </div>
+      </div>
+
+      <!-- 비교 기록장 -->
+      <div class="rail-panel" data-rp="cmp">
+        <div class="rail-sec">
+          <h4>원소 비교 기록장<span class="tag">양성자 수 비교</span></h4>
+          <div class="btn-row" style="margin-bottom:9px">
+            <button class="btn sm primary" id="addCmp">＋ 현재 원소 기록</button>
+            <button class="btn sm" id="clrCmp">지우기</button>
           </div>
-          <div class="cc-row sum">
-            <div class="lab">전체 전하량 합계</div>
-            <div class="num" id="cc-sum">0</div>
+          <div class="table-wrap"><table class="data-table stack" id="cmpTable"></table></div>
+          <p class="rail-note">여러 원소를 기록해 <b>양성자 수</b>가 원소마다 어떻게 다른지 나란히 비교해 보세요.</p>
+        </div>
+      </div>
+
+      <!-- 보기 설정 -->
+      <div class="rail-panel" data-rp="view">
+        <div class="rail-sec">
+          <h4>전자 보기</h4>
+          <div class="seg" id="viewMode">
+            <button aria-pressed="true" data-vm="shell">전자 껍질</button>
+            <button aria-pressed="false" data-vm="cloud">전자 구름</button>
           </div>
-          <div class="verdict neutral" id="cc-verdict">전기적으로 중성 <small>양성자의 (+)전하와 전자의 (−)전하가 완전히 상쇄됩니다</small></div>
         </div>
-        <p style="font-size:11px;color:var(--ink-3);font-weight:700;margin-top:8px;line-height:1.5">
-          양성자 1개의 전하량 = +1.6×10⁻¹⁹ C, 전자 1개의 전하량 = −1.6×10⁻¹⁹ C, 중성자는 전하가 없습니다(0).
-        </p>
+        <div class="rail-sec">
+          <h4>원자핵 보기</h4>
+          <div class="seg" id="nucMode">
+            <button aria-pressed="true" data-nm="0">양성자 · 중성자</button>
+            <button aria-pressed="false" data-nm="1">원자핵 (+x)</button>
+          </div>
+          <div class="note" id="nucNote" style="margin-top:9px;display:none"></div>
+        </div>
+        <div class="rail-sec">
+          <h4>모형 표시</h4>
+          <div class="switch-row"><span class="t">양성자에 + 기호 표시</span><button class="sw" id="swSign" aria-pressed="true"></button></div>
+          <div class="switch-row"><span class="t">핵을 크게 보기</span><button class="sw" id="swBigNuc" aria-pressed="false"></button></div>
+          <div class="switch-row"><span class="t">전자 이동 궤적</span><button class="sw" id="swTrail" aria-pressed="false"></button></div>
+          <p class="rail-note ms-only">중학교 과정에서는 <b>양성자 수가 원소의 종류를 정한다</b>는 것까지 다룹니다. 질량수와 동위원소는 <b>고등학교 모드</b>에서 볼 수 있어요.</p>
+        </div>
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-h"><h3>보기 설정</h3></div>
-      <div class="card-b tight">
-        <div style="font-size:11px;font-weight:900;color:var(--ink-3);margin-bottom:5px">전자 보기</div>
-        <div class="seg" id="viewMode">
-          <button aria-pressed="true" data-vm="shell">전자 껍질</button>
-          <button aria-pressed="false" data-vm="cloud">전자 구름</button>
-        </div>
-        <div style="font-size:11px;font-weight:900;color:var(--ink-3);margin:11px 0 5px">원자핵 보기</div>
-        <div class="seg" id="nucMode">
-          <button aria-pressed="true" data-nm="0">양성자 · 중성자</button>
-          <button aria-pressed="false" data-nm="1">원자핵 (+x)</button>
-        </div>
-        <div class="note" id="nucNote" style="margin-top:9px;display:none"></div>
-        <div class="switch-row" style="margin-top:6px"><span class="t">양성자에 + 기호 표시</span><button class="sw" id="swSign" aria-pressed="true"></button></div>
-        <div class="switch-row"><span class="t">핵을 크게 보기</span><button class="sw" id="swBigNuc" aria-pressed="false"></button></div>
-        <div class="switch-row"><span class="t">전자 이동 궤적</span><button class="sw" id="swTrail" aria-pressed="false"></button></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><h3>원소 비교 기록장</h3><span class="hint">양성자 수 비교</span></div>
-      <div class="card-b tight">
-        <div class="btn-row" style="margin-bottom:9px">
-          <button class="btn sm primary" id="addCmp">＋ 현재 원소 기록</button>
-          <button class="btn sm" id="clrCmp">지우기</button>
-        </div>
-        <div class="table-wrap"><table class="data-table stack" id="cmpTable"></table></div>
-        <p class="table-cap">여러 원소를 기록해 <b>양성자 수</b>가 원소마다 어떻게 다른지 나란히 비교해 보세요.</p>
-      </div>
-    </div>
-
-    <button class="inq-jump" data-inqgo="1">
-      <span class="ic">📝</span>
-      <span class="tx"><b>탐구 질문 — 원자</b><i>관찰한 내용을 서술형으로 정리해 보세요</i></span>
-      <span class="pg" data-inqcnt="atom">0 / 5 작성</span>
-      <span class="go">▸</span>
-    </button>
-  </div>
+  </aside>
  </div>
 </section>
 
 <!-- ============ 2. 이온 만들기 ============ -->
-<section class="view" id="view-ion">
+<section class="view exp" id="view-ion">
  <div class="split">
   <div class="stage-col">
     <div class="stage">
@@ -2137,76 +2270,116 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
           <span class="chip"><b id="i-chg">전하 0</b></span>
         </div>
         <div class="stage-ctrl">
-          <button class="sbtn on" id="btnPlay2" title="전자 움직임 재생/정지 (Space)">
+          <button class="sbtn on" id="btnPlay2" title="전자 움직임 재생/정지 (Space)" aria-label="전자 움직임 재생 또는 정지">
             <svg viewBox="0 0 24 24" id="icoPlay2"><rect x="7" y="5" width="3.4" height="14" rx="1.1" fill="currentColor" stroke="none"/><rect x="13.6" y="5" width="3.4" height="14" rx="1.1" fill="currentColor" stroke="none"/></svg>
           </button>
-          <button class="sbtn" id="btnNuc2" title="원자핵으로 전환 (N)">
+          <button class="sbtn" id="btnNuc2" title="원자핵으로 전환 (N)" aria-label="원자핵으로 전환">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9.6" ry="4.4"/><ellipse cx="12" cy="12" rx="9.6" ry="4.4" transform="rotate(60 12 12)"/></svg>
           </button>
-          <button class="sbtn" id="btnReset2" title="원래 원자로 되돌리기">
+          <button class="sbtn" id="btnReset2" title="원래 원자로 되돌리기" aria-label="원래 원자로 되돌리기">
             <svg viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5"/><path d="M4 4.5V9h4.5"/></svg>
           </button>
-          <button class="sbtn" id="btnShot2" title="모형 이미지 저장">
+          <button class="sbtn" id="btnShot2" title="모형 이미지 저장" aria-label="모형 이미지 저장">
             <svg viewBox="0 0 24 24"><path d="M4 8.5h3.2L9 6h6l1.8 2.5H20v10H4z"/><circle cx="12" cy="13" r="3.2"/></svg>
           </button>
         </div>
-        <div class="atom-wrap"><div class="atom" id="ionBox"></div></div>
+
         <div class="atom-caption">
           <div class="nm" id="i-cap">나트륨 원자</div>
           <div class="sub" id="i-capsub">전자를 잃거나 얻어 이온을 만들어 보세요</div>
         </div>
-      </div>
-    </div>
 
-    <div class="card">
-      <div class="card-h"><h3>이온 표기 해부</h3><span class="hint">원소 기호 · 전하의 종류 · 전자 수</span></div>
-      <div class="card-b">
-        <div class="dissect" id="dissectBox"></div>
-      </div>
-    </div>
+        <div class="atom-wrap"><div class="atom" id="ionBox"></div></div>
 
-    <div class="card">
-      <div class="card-h"><h3>실제 이온과 비교하기</h3><span class="hint">내가 만든 이온이 실제로 존재할까?</span></div>
-      <div class="card-b">
-        <div class="btn-row">
-          <button class="btn primary" id="btnRealIon">🔎 실제 이온 예시 보기</button>
-          <button class="btn" id="btnRealHide" style="display:none">접기</button>
+        <!-- 조작 독 — 원소를 고르고 전자를 옮긴다 (§3.1) -->
+        <div class="dock" id="dockIon">
+          <div class="dock-row">
+            <span class="dgrp">
+            <button class="dbtn" id="prevElIon" title="이전 원소 (←)" aria-label="이전 원소">
+              <svg viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+            </button>
+            <button class="el-pill" id="pickIon" title="주기율표에서 원소 고르기 (P)" aria-label="주기율표에서 원소 고르기">
+              <span class="el-tile" id="ipk-tile"><span class="z">11</span><span class="sy">Na</span></span>
+              <span class="meta"><span class="n1" id="ipk-n1">나트륨</span><span class="n2" id="ipk-n2">Sodium · 1족 · 3주기</span></span>
+              <span class="go">▸</span>
+            </button>
+            <button class="dbtn" id="nextElIon" title="다음 원소 (→)" aria-label="다음 원소">
+              <svg viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+            </button>
+            </span>
+            <span class="dock-sep" aria-hidden="true"></span>
+            <span class="dgrp">
+            <button class="dbtn wide pos" id="loseE" title="전자 1개 잃기 (↑)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19.5V5M6 11l6-6 6 6"/></svg>전자 잃기
+            </button>
+            <button class="dbtn wide neg" id="gainE" title="전자 1개 얻기 (↓)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5V19M6 13l6 6 6-6"/></svg>전자 얻기
+            </button>
+            <button class="dbtn" id="autoIon" title="이 원소가 실제로 만드는 대표 이온으로 맞추기" aria-label="대표 이온 만들기">
+              <svg viewBox="0 0 24 24"><path d="M12 3.6l1.9 4.4 4.8.4-3.6 3.1 1.1 4.7L12 13.8l-4.2 2.4 1.1-4.7-3.6-3.1 4.8-.4z"/></svg>
+            </button>
+            </span>
+          </div>
+          <div class="dock-tip" id="eHint" role="status">전자를 잃으면 <b>양이온</b>, 얻으면 <b>음이온</b>이 됩니다</div>
         </div>
-        <p style="font-size:11.5px;color:var(--ink-3);font-weight:700;margin-top:8px;line-height:1.55" id="realHelp">
-          지금 고른 원소가 <b>실제로 만드는 이온</b>을 불러와, 내가 만든 이온과 나란히 비교합니다.
-          전하·전자 수·전자 껍질 배치가 어떻게 다른지 확인해 보세요.
-        </p>
-        <div id="realBox" style="display:none;margin-top:11px"></div>
+
+        <button class="rail-toggle" id="railBtnIon" aria-expanded="true" aria-controls="railIon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M14.5 4.5v15"/></svg>
+          <span class="lb">관찰 패널</span>
+        </button>
       </div>
     </div>
   </div>
 
-  <div class="side-col">
-    <div class="card">
-      <div class="card-h"><h3>이온 만들기 미션</h3><span class="hint" id="misCount">0개 성공</span></div>
-      <div class="card-b">
-        <div class="seg" id="misToggle" style="margin-bottom:11px">
-          <button aria-pressed="true" data-ms="0">🔬 자유 탐색</button>
-          <button aria-pressed="false" data-ms="1">🎯 미션 모드</button>
-        </div>
-        <div id="misBody"></div>
+  <aside class="rail" id="railIon" aria-label="이온 관찰 패널">
+    <div class="rail-h">
+      <div class="rail-tabs" role="tablist" aria-label="관찰 항목">
+        <button role="tab" aria-selected="true"  data-rp="form">이온식</button>
+        <button role="tab" aria-selected="false" data-rp="shell">껍질</button>
+        <button role="tab" aria-selected="false" data-rp="charge">전하량</button>
+        <button role="tab" aria-selected="false" data-rp="mig">이온 이동</button>
+        <button role="tab" aria-selected="false" data-rp="mission">미션</button>
       </div>
+      <button class="dbtn rail-close" id="railCloseIon" aria-label="관찰 패널 닫기" title="닫기">
+        <svg viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>
+      </button>
     </div>
 
-    <div class="card">
-      <div class="card-h"><h3>원소 선택</h3></div>
-      <div class="card-b tight">
-        <button class="el-pick" id="pickIon">
-          <div class="el-tile" id="ipk-tile"><span class="z">11</span><span class="sy">Na</span></div>
-          <div class="meta"><div class="n1" id="ipk-n1">나트륨</div><div class="n2" id="ipk-n2">Sodium · 1족 · 3주기</div></div>
-          <div class="go">▸</div>
-        </button>
-
-        <div class="stepper-block" style="margin-top:12px">
-          <div class="stepper-h">
-            <span class="t"><i></i>양성자 수 조절</span>
-            <span class="d">양성자 수를 바꾸면 <b>다른 원소</b>가 됩니다. 옮긴 전자 수는 그대로 두고 원소만 바꿔 비교해 보세요.</span>
+    <div class="rail-body">
+      <!-- 이온식과 이름 -->
+      <div class="rail-panel on" data-rp="form">
+        <div class="rail-sec">
+          <h4>이온식과 이름</h4>
+          <div class="ion-display is-atom" id="ionDisplay">
+            <div class="big"><span class="ion-formula"><span class="base">Na</span></span></div>
+            <div class="nm">나트륨 원자</div>
+            <div class="st">전자를 잃지도 얻지도 않은 상태 (중성)</div>
           </div>
+          <div class="note" id="ionNote" style="margin-top:10px;display:none"></div>
+          <div style="margin-top:11px">
+            <div class="kv"><span class="k">잃거나 얻은 전자 수</span><span class="v" id="i-delta">0</span></div>
+            <div class="kv"><span class="k">이온의 전하</span><span class="v" id="i-charge">0</span></div>
+            <div class="kv"><span class="k">전자 껍질 배치</span><span class="v" id="i-shell">2 8 1</span></div>
+          </div>
+        </div>
+        <div class="rail-sec">
+          <h4>실제 이온과 비교하기<span class="tag">실제로 존재할까?</span></h4>
+          <div class="btn-row">
+            <button class="btn primary" id="btnRealIon">🔎 실제 이온 예시 보기</button>
+            <button class="btn" id="btnRealHide" style="display:none">접기</button>
+          </div>
+          <p class="rail-note" id="realHelp">
+            지금 고른 원소가 <b>실제로 만드는 이온</b>을 불러와, 내가 만든 이온과 나란히 비교합니다.
+            전하·전자 수·전자 껍질 배치가 어떻게 다른지 확인해 보세요.
+          </p>
+          <div id="realBox" style="display:none;margin-top:11px"></div>
+        </div>
+        <div class="rail-sec">
+          <h4>이온 표기 해부<span class="tag">기호 · 전하 · 전자 수</span></h4>
+          <div class="dissect" id="dissectBox"></div>
+        </div>
+        <div class="rail-sec">
+          <h4>원소 바꾸기<span class="tag">양성자 수</span></h4>
           <div class="stepper" id="pStepIon">
             <button class="st-btn" type="button" data-d="-1" aria-label="양성자 1개 줄이기" title="양성자 1개 줄이기 (길게 누르면 빠르게)">−</button>
             <span class="st-field">
@@ -2219,87 +2392,64 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
           <div class="stepper-note" id="pNoteIon"></div>
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-h"><h3>전자 옮기기</h3><span class="hint">↑ ↓ 방향키</span></div>
-      <div class="card-b">
-        <div class="btn-row">
-          <button class="btn pos" id="loseE" style="flex:1 1 0">− 전자 잃기</button>
-          <button class="btn neg" id="gainE" style="flex:1 1 0">＋ 전자 얻기</button>
-        </div>
-        <div class="e-hint" id="eHint" role="status"></div>
-        <div class="btn-row" style="margin-top:7px">
-          <button class="btn sm block" id="autoIon">✨ 이 원소의 대표 이온 만들기</button>
-        </div>
-        <div style="margin-top:11px">
-          <div class="kv"><span class="k">잃거나 얻은 전자 수</span><span class="v" id="i-delta">0</span></div>
-          <div class="kv"><span class="k">이온의 전하</span><span class="v" id="i-charge">0</span></div>
-          <div class="kv"><span class="k">전자 껍질 배치</span><span class="v" id="i-shell">2 8 1</span></div>
+      <!-- 전자 껍질 -->
+      <div class="rail-panel" data-rp="shell">
+        <div class="rail-sec">
+          <h4>껍질별 전자 수</h4>
+          <div class="shell-bar" id="ionShells"></div>
+          <div style="margin-top:11px">
+            <div class="kv"><span class="k">전자 껍질 수</span><span class="v" id="i-nshell">3</span></div>
+            <div class="kv"><span class="k">가장 바깥 껍질의 전자 수</span><span class="v" id="i-valence">1</span></div>
+          </div>
+          <div class="hs-only" id="ionOctet" style="margin-top:10px"></div>
+          <p class="rail-note">전자를 잃거나 얻으면 <b>가장 바깥 껍질</b>부터 채워지고 비워집니다. 양성자 수는 그대로이므로 <b>원소는 바뀌지 않습니다</b>.</p>
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-h"><h3>전자 껍질</h3><span class="hint">껍질 이름과 전자 수</span></div>
-      <div class="card-b">
-        <div class="shell-bar" id="ionShells"></div>
-        <div style="margin-top:10px">
-          <div class="kv"><span class="k">전자 껍질 수</span><span class="v" id="i-nshell">3</span></div>
-          <div class="kv"><span class="k">가장 바깥 껍질의 전자 수</span><span class="v" id="i-valence">1</span></div>
-        </div>
-        <div class="hs-only" id="ionOctet" style="margin-top:10px"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><h3>이온식과 이름</h3></div>
-      <div class="card-b">
-        <div class="ion-display is-atom" id="ionDisplay">
-          <div class="big"><span class="ion-formula"><span class="base">Na</span></span></div>
-          <div class="nm">나트륨 원자</div>
-          <div class="st">전자를 잃지도 얻지도 않은 상태 (중성)</div>
-        </div>
-        <div class="note" id="ionNote" style="margin-top:10px;display:none"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><h3>전체 전하량 계산</h3><span class="hint">중성인가?</span></div>
-      <div class="card-b tight">
-        <div class="seg" id="chargeUnit2" style="margin-bottom:9px">
-          <button aria-pressed="true" data-unit="rel">상대 전하 (+1 / −1)</button>
-          <button aria-pressed="false" data-unit="c">실제 전하량 (C)</button>
-        </div>
-        <div class="charge-calc">
-          <div class="cc-row p"><div class="lab"><i></i><span id="ic-plab">양성자</span></div><div class="num" id="ic-pval">+11</div></div>
-          <div class="cc-row e"><div class="lab"><i></i><span id="ic-elab">전자</span></div><div class="num" id="ic-eval">−11</div></div>
-          <div class="cc-row sum"><div class="lab">전체 전하량 합계</div><div class="num" id="ic-sum">0</div></div>
-          <div class="verdict neutral" id="ic-verdict">전기적으로 중성 <small>양성자 수 = 전자 수</small></div>
+      <!-- 전하량 -->
+      <div class="rail-panel" data-rp="charge">
+        <div class="rail-sec">
+          <h4>전체 전하량 계산<span class="tag">중성인가?</span></h4>
+          <div class="seg" id="chargeUnit2" style="margin-bottom:9px">
+            <button aria-pressed="true" data-unit="rel">상대 전하 (+1 / −1)</button>
+            <button aria-pressed="false" data-unit="c">실제 전하량 (C)</button>
+          </div>
+          <div class="charge-calc">
+            <div class="cc-row p"><div class="lab"><i></i><span id="ic-plab">양성자</span></div><div class="num" id="ic-pval">+11</div></div>
+            <div class="cc-row e"><div class="lab"><i></i><span id="ic-elab">전자</span></div><div class="num" id="ic-eval">−11</div></div>
+            <div class="cc-row sum"><div class="lab">전체 전하량 합계</div><div class="num" id="ic-sum">0</div></div>
+            <div class="verdict neutral" id="ic-verdict">전기적으로 중성 <small>양성자 수 = 전자 수</small></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-h"><h3>전기력을 이용한 이온의 이동</h3><span class="hint">탐구</span></div>
-      <div class="card-b tight">
-        <div id="migBox"></div>
-        <div class="btn-row" style="margin-top:9px">
-          <button class="btn sm primary block" id="migToggle">⚡ 전류 흘려 주기</button>
+      <!-- 전기력을 이용한 이온의 이동 -->
+      <div class="rail-panel" data-rp="mig">
+        <div class="rail-sec">
+          <h4>전기력을 이용한 이온의 이동<span class="tag">교과서 탐구</span></h4>
+          <div id="migBox"></div>
+          <div class="btn-row" style="margin-top:9px">
+            <button class="btn sm primary block" id="migToggle">⚡ 전류 흘려 주기</button>
+          </div>
+          <p class="rail-note">양이온은 (−)극으로, 음이온은 (+)극으로 이동합니다. 지금 만든 이온이 어느 쪽으로 갈지 확인해 보세요.</p>
         </div>
-        <p style="font-size:11.5px;color:var(--ink-3);font-weight:700;margin-top:8px;line-height:1.5">
-          양이온은 (−)극으로, 음이온은 (+)극으로 이동합니다. 현재 이온이 어느 쪽으로 갈지 확인해 보세요.
-        </p>
       </div>
-    </div>
 
-    <button class="inq-jump" data-inqgo="2">
-      <span class="ic">📝</span>
-      <span class="tx"><b>탐구 질문 — 이온</b><i>관찰한 내용을 서술형으로 정리해 보세요</i></span>
-      <span class="pg" data-inqcnt="ion">0 / 5 작성</span>
-      <span class="go">▸</span>
-    </button>
-  </div>
+      <!-- 미션 -->
+      <div class="rail-panel" data-rp="mission">
+        <div class="rail-sec">
+          <h4>이온 만들기 미션<span class="tag" id="misCount">0개 성공</span></h4>
+          <div class="seg" id="misToggle" style="margin-bottom:11px">
+            <button aria-pressed="true" data-ms="0">🔬 자유 탐색</button>
+            <button aria-pressed="false" data-ms="1">🎯 미션 모드</button>
+          </div>
+          <div id="misBody"></div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
  </div>
 </section>
 
@@ -2629,12 +2779,8 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
 
 </main>
 
-<!-- ============ 저작권 ============ -->
-<footer class="appfoot">
-  <span>© <span id="ftYear">2026</span> <b>송쌤과학</b> · 원자와 이온 모형 가상실험실</span>
-  <span class="af-sep" aria-hidden="true"></span>
-  <span class="af-more">이 자료의 저작권은 <b>송쌤과학</b>에 있으며, 무단 복제·배포를 금합니다.</span>
-</footer>
+<div class="rail-scrim" id="railScrim" hidden></div>
+
 </div>
 
 <!-- ============ 주기율표 모달 ============ -->
@@ -2667,9 +2813,10 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
     <div class="modal-b">
       <div class="help-list">
         <div class="help-item"><div class="no">1</div><div class="tx"><b>원자 모형</b> — 주기율표에서 원소를 고르면 양성자(빨강 <b>+</b>)·중성자(초록)·전자(파랑 <b>−</b>)가 실제 개수대로 그려집니다.</div></div>
-        <div class="help-item"><div class="no">2</div><div class="tx"><b>양성자 수 조절</b> — ‘입자 수’(원자 모형)와 ‘원소 선택’(이온 만들기)의 <b>＋ −</b> 버튼으로 양성자를 하나씩 더하거나 뺄 수 있고, 숫자 칸에 직접 써 넣어도 됩니다(1~118).
+        <div class="help-item"><div class="no">2</div><div class="tx"><b>양성자 수 조절</b> — ‘원자 모형’은 무대 아래 <b>조작 독</b>의 <b>양성자 ＋ −</b> 버튼으로, ‘이온 만들기’는 관찰 패널의 <b>원소 바꾸기</b>에서 양성자를 하나씩 더하거나 뺍니다. 숫자 칸에 직접 써 넣어도 됩니다(1~118).
           <b>길게 누르면</b> 빠르게 넘어가고, 칸을 누른 뒤 <b>↑ ↓</b> 방향키로도 조절됩니다. 양성자 수를 바꾸면 <b>원소의 종류가 바로 바뀌는 것</b>을 모형에서 확인해 보세요.</div></div>
         <div class="help-item"><div class="no">3</div><div class="tx"><b>전자 움직임</b> — 무대 오른쪽 위 ▶/⏸ 버튼(또는 <b>Space</b>)으로 전자를 움직이거나 멈출 수 있습니다. 시계 아이콘으로 속도를 바꿉니다.</div></div>
+        <div class="help-item"><div class="no">＋</div><div class="tx"><b>조작 독과 관찰 패널</b> — 원소를 고르고 전자를 옮기는 <b>조작 버튼은 모두 실험 무대 안 아래쪽</b>에 있습니다. 껍질·전하량·기록장 같은 <b>읽는 정보</b>는 오른쪽 <b>관찰 패널</b>에 항목별로 나뉘어 있고, 무대 오른쪽 아래 <b>관찰 패널</b> 버튼으로 접었다 펼 수 있습니다. 좁은 화면에서는 아래에서 올라오는 시트로 열립니다.</div></div>
         <div class="help-item"><div class="no">4</div><div class="tx"><b>원자핵으로 전환</b> — 무대의 ⚛ 버튼(또는 <b>N</b>)을 누르면 양성자·중성자 대신 원자핵을 하나의 구로 나타내고, 원자핵의 총 전하 <b>+x</b>를 보여 줍니다.</div></div>
         <div class="help-item"><div class="no">5</div><div class="tx"><b>동위원소</b> — 중성자 수는 <b>실제로 존재하는 동위원소</b>로만 바꿀 수 있습니다. ⭐ 표시가 자연에 가장 많은 동위원소입니다.</div></div>
         <div class="help-item"><div class="no">6</div><div class="tx"><b>전체 전하량 계산</b> — 양성자 총 전하량과 전자 총 전하량을 더해 중성인지 확인합니다. 상대 전하(+1/−1)와 실제 전하량(C) 중에서 고를 수 있습니다.</div></div>
@@ -2687,13 +2834,13 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
         <div class="help-item"><div class="no">★</div><div class="tx"><b>중학교 · 고등학교 모드</b> — 오른쪽 위에서 학교급을 고릅니다(<b>M</b> 키).
           중학교는 <b>양성자 수와 이온의 전하</b>까지 다루고 질량수·동위원소는 숨깁니다.
           고등학교는 <b>동위원소·전자 배치·옥텟 규칙·이온의 크기</b>까지 함께 봅니다. 탐구 질문과 연습 문항도 함께 바뀝니다.</div></div>
-        <div class="help-item"><div class="no">★</div><div class="tx"><b>학번·이름</b> — 화면 맨 위 🎓 입력 줄에 학년·반·번호와 이름을 적습니다. 리포트·PDF·모형 이미지·게임 결과를 저장하면 학번·이름·날짜가 <b>산출물 안에 함께 인쇄</b>됩니다.
-          <b>입력한 학번·이름은 이 기기에 저장되지 않습니다</b> — 화면을 새로 고치거나 닫으면 지워지므로, 여러 학생이 같은 컴퓨터를 써도 앞 사람 이름이 남지 않습니다. 저장 전에 이름이 비어 있으면 입력 줄이 깜박이며 알려 줍니다.</div></div>
-        <div class="help-item"><div class="no">★</div><div class="tx"><b>탐구 질문 서술형</b> — 상단 탭 맨 오른쪽 <b>📝 탐구 질문</b>(<b>7</b> 키)에서 원자·이온 문항을 한 화면에 모아 풉니다.
+        <div class="help-item"><div class="no">★</div><div class="tx"><b>학번·이름</b> — 오른쪽 위 <b>🎓 이름 입력</b> 칩을 누르면 열리는 칸에 학년·반·번호와 이름을 적습니다. 리포트·PDF·모형 이미지·게임 결과를 저장하면 학번·이름·날짜가 <b>산출물 안에 함께 인쇄</b>됩니다.
+          <b>입력한 학번·이름은 이 기기에 저장되지 않습니다</b> — 화면을 새로 고치거나 닫으면 지워지므로, 여러 학생이 같은 컴퓨터를 써도 앞 사람 이름이 남지 않습니다. 저장 전에 이름이 비어 있으면 이 칸이 저절로 열리며 깜박여 알려 줍니다.</div></div>
+        <div class="help-item"><div class="no">★</div><div class="tx"><b>탐구 질문 서술형</b> — 상단 탭 맨 오른쪽 <b>📝 탐구 질문</b>(<b>7</b> 키)에서 원자·이온 문항을 한 화면에 모아 풉니다. 탭에 붙은 <b>작성 수 배지</b>로 진행 상황이 바로 보입니다.
           질문을 누르면 답을 쓰는 칸이 열리고 자동 저장되며, <b>20자 이상</b> 쓰면 모범 답안을 열 수 있습니다.
           <b>모범 답안을 열람한 문항은 처음 답안을 더 고칠 수 없지만</b> 🔒, 모범 답안 아래에 <b>✏️ 다시 쓰기 칸</b>이 열립니다.
           모범 답안과 견주어 새로 정리한 답안을 여기에 쓰면, 리포트에 <b>처음 답안 · 모범 답안 · 다시 쓴 답안</b>이 나란히 인쇄됩니다.
-          원자·이온 화면 곁줄 맨 아래의 <b>📝 바로가기</b>를 눌러도 이동합니다.</div></div>
+</div></div>
         <div class="help-item"><div class="no">★</div><div class="tx"><b>힌트 보기</b> — 답이 막힐 때 💡 버튼을 누르면 무엇을 살펴보면 되는지 알려 줍니다.
           <b>힌트는 답안을 잠그지 않아</b> 몇 번이든 열어 보고 이어서 고쳐 쓸 수 있습니다. 리포트에는 ‘힌트 봄’으로만 표시됩니다.</div></div>
         <div class="help-item"><div class="no">★</div><div class="tx"><b>이론 학습 자료</b> — 오른쪽 위 📖 책자 버튼(<b>T</b> 키)을 누르면 원자·이온의 핵심 개념을 <b>도해 카드</b>로 한 장씩 넘겨 볼 수 있습니다.
@@ -2720,6 +2867,13 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
           <span class="bdg"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5.2"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.2" cy="6.8" r="1.15" fill="currentColor" stroke="none"/></svg></span>
           <span>Instagram <b>@songsamscience</b></span>
         </a>
+      </div>
+      <div class="appfoot">
+        <span>🧪 <b>송쌤과학</b> (Song Ssaem Science)</span>
+        <span class="af-sep" aria-hidden="true"></span>
+        <span>ⓒ <span id="ftYear">2026</span> 송세호 | 아주중학교</span>
+        <span class="af-sep" aria-hidden="true"></span>
+        <span>⚠ 무단 복제·상업적 이용 금지</span>
       </div>
       <div class="note" style="margin-top:12px">
         <b>단축키</b> — Space: 전자 재생/정지 · ← →: 이전/다음 원소 · ↑ ↓: 전자 얻기/잃기 · 1~7: 모드 전환 · P: 주기율표 · N: 원자핵 전환 · M: 학교급 전환 · T: 이론 · R: 학습 리포트 · B: 업적 · F: 전체화면 · D: 밝게/어둡게 · H: 도움말 · Esc: 창 닫기
@@ -3035,6 +3189,7 @@ const ION_BY_EL = {}; IONS.forEach(i=>{ if(i.el && !ION_BY_EL[i.el]) ION_BY_EL[i
 /* ---------- 유틸 ---------- */
 const $  = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
+const $tx = (s, v) => { const el = $(s); if(el) el.textContent = v; };
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
@@ -3240,8 +3395,8 @@ class AtomView{
   fit(){
     const box = this.host.parentElement;
     if(!box) return;
-    /* 아래쪽 이름표가 모형을 가리지 않도록 세로 여백을 더 둔다 */
-    const w = box.clientWidth - 32, h = box.clientHeight - 74;
+    /* .atom-wrap 자체가 HUD·조작 독을 뺀 실사용 영역이다 — 숨 쉴 여백만 남긴다 */
+    const w = box.clientWidth - 10, h = box.clientHeight - 10;
     const S = Math.max(160, Math.min(w, h));
     if(Math.abs(S - this.S) < 2) return;
     this.S = S;
@@ -3660,6 +3815,27 @@ function paintStudent(){
   $("#inGrade").value = STU.grade; $("#inClass").value = STU.cls;
   $("#inNo").value = STU.no; $("#inName").value = STU.name;
   $("#fName").classList.toggle("invalid", false);
+  paintStuChip();
+}
+
+/* 헤더 칩 — 이름을 적었는지 한눈에 보인다 */
+function paintStuChip(){
+  const chip = $("#btnStu"); if(!chip) return;
+  chip.classList.toggle("set", !!STU.name);
+  $("#stuChipName").textContent = STU.name || "이름 입력";
+  chip.title = STU.name
+    ? `${stuLabel()} — 학번·이름 고치기`
+    : "학번·이름 입력 — 리포트와 저장 이미지에 인쇄됩니다";
+}
+
+/* 학습자 정보 팝오버 */
+function stuBarOpen(on){
+  const bar = $("#stuBar"), btn = $("#btnStu");
+  if(!bar) return;
+  const open = (on === undefined) ? !bar.classList.contains("open") : !!on;
+  bar.classList.toggle("open", open);
+  if(btn) btn.setAttribute("aria-expanded", String(open));
+  if(open){ syncStuArrow(); setTimeout(()=>$(STU.name ? "#inName" : "#inGrade").focus(), 60); }
 }
 
 /* 학교급 전환 — 교육과정 수준에 맞춰 화면 구성과 문항을 함께 바꾼다 */
@@ -3916,13 +4092,15 @@ function paintStepper(rootId, numId, capId, noteId, e, note, warn){
   root.querySelector('[data-d="1"]').disabled  = e.z >= Z_MAX;
   const inp = $("#"+numId);
   if(inp.value !== String(e.z)) inp.value = e.z;
-  $("#"+capId).innerHTML =
+  const cap = $("#"+capId);
+  if(cap) cap.innerHTML =
     `<span class="ar">→</span>
      <span class="tile" style="background:${e.color}">${e.sym}</span>
      <span class="tx"><span class="n1">${esc(e.kor)} <span style="color:var(--ink-3);font-weight:800">${e.sym}</span></span>
        <span class="n2">원자 번호 ${e.z} · ${groupLabel(e)} ${e.period}주기 · ${CATEGORY[e.cat].n}</span></span>`;
   const n = $("#"+noteId);
-  n.className = "stepper-note" + (warn ? " warn" : "");
+  if(!n) return;
+  n.className = (n.dataset.base || "stepper-note") + (warn ? " warn" : "");
   n.innerHTML = note;
 }
 
@@ -3973,18 +4151,18 @@ function renderAtom(){
     : ((nN===e.n) ? "가장 흔한 동위원소" : `동위원소 ${e.sym}-${mass}`);
 
   /* 입자 수 */
-  $("#s-p").textContent = e.z;
-  $("#s-n").textContent = nN;
-  $("#s-e").textContent = nE;
-  $("#s-mass").textContent = `${e.z} + ${nN} = ${mass}`;
-  $("#s-shell").textContent = e.shells.join(" ");
+  $tx("#s-p", e.z);
+  $tx("#s-n", nN);
+  $tx("#s-e", nE);
+  $tx("#s-mass", `${e.z} + ${nN} = ${mass}`);
+  $tx("#s-shell", e.shells.join(" "));
   renderIsotopes(e, mass);
 
   /* 양성자 수 스테퍼 */
   paintStepper("pStepAtom","pNumAtom","pCapAtom","pNoteAtom", e,
-    `양성자가 <b>${e.z}개</b>이므로 이 원자는 <b>${esc(e.kor)}(${e.sym})</b>입니다.`
-    + ` 원자는 전기적으로 중성이므로 전자도 <b>${e.z}개</b>입니다.`
-    + (ST.level==="hs" ? ` 중성자 수는 가장 흔한 동위원소인 <b>${e.n}개</b>로 맞췄습니다.` : ""));
+    `양성자 <b>${e.z}개</b> → <b>${esc(e.kor)}(${e.sym})</b>`
+    + ` · 중성이라 전자도 <b>${e.z}개</b>`
+    + (ST.level==="hs" ? ` · 중성자 <b>${nN}개</b>` : ""));
 
   /* 전자 껍질 */
   $("#atomShells").innerHTML = shellBarHTML(e.shells);
@@ -4059,7 +4237,7 @@ atom:[
   try:[["수소 보기",1],["산소 보기",8],["철 보기",26]]},
  {id:"ms-a2", std:"[9과11-02]",
   q:"원자가 전기적으로 중성인 까닭을 양성자 수와 전자 수를 이용해 설명해 보자.",
-  guide:"오른쪽 <b>전체 전하량 계산</b> 칸에서 <b>‘양성자 ○개 × (+1)’</b>과 <b>‘전자 ○개 × (−1)’</b> 두 줄의 값을 각각 읽고, 그 아래 <b>전체 전하량 합계가 0</b>이 되는 과정을 문장으로 옮겨 보세요.",
+  guide:"오른쪽 <b>관찰 패널</b>의 <b>전하량</b> 탭을 열고, <b>전체 전하량 계산</b>에서 <b>‘양성자 ○개 × (+1)’</b>과 <b>‘전자 ○개 × (−1)’</b> 두 줄의 값을 각각 읽은 뒤, 그 아래 <b>전체 전하량 합계가 0</b>이 되는 과정을 문장으로 옮겨 보세요.",
   a:`원자는 <span class="hi">양성자 수와 전자 수가 서로 같기</span> 때문입니다.
      양성자 1개는 +1, 전자 1개는 −1의 전하를 띠므로, 개수가 같으면 두 전하의 크기가 같고 부호만 반대입니다.
      그래서 모두 더하면 <span class="hi">총전하량이 정확히 0</span>이 되어 전기적으로 중성입니다.`,
@@ -4087,7 +4265,7 @@ atom:[
 ion:[
  {id:"ms-i1", std:"[9과11-04]",
   q:"중성인 원자가 전자를 잃으면 전체 전하는 어떻게 될까? 나트륨을 예로 들어 설명해 보자.",
-  guide:"‘전자 잃기’를 눌러 보고, <b>전체 전하량 계산</b> 칸의 합계가 어떻게 바뀌는지 확인하세요.",
+  guide:"무대 아래 조작 독의 <b>전자 잃기</b>를 눌러 보고, 관찰 패널 <b>전하량</b> 탭에서 <b>전체 전하량 합계</b>가 어떻게 바뀌는지 확인하세요.",
   a:`전자(−)가 줄어들면 <span class="hi">양성자 수가 전자 수보다 많아져</span> 전체적으로 <span class="hi">(+)전하를 띱니다</span>.
      나트륨은 양성자 11개·전자 11개인데 전자 1개를 잃으면 양성자 11개·전자 10개가 되어,
      총전하량이 +1인 <span class="hi">나트륨 이온(Na⁺)</span>이 됩니다.`,
@@ -4101,7 +4279,7 @@ ion:[
   try:[["나트륨으로 확인","ion:11:1"]]},
  {id:"ms-i3", std:"[9과11-04] 탐구 활동",
   q:"이온이 녹아 있는 용액에 전류를 흘려 주면 양이온과 음이온은 각각 어느 쪽 극으로 이동할까? 그 까닭도 함께 써 보자.",
-  guide:"‘전기력을 이용한 이온의 이동’에서 <b>전류 흘려 주기</b>를 눌러 양이온과 음이온을 각각 관찰해 보세요.",
+  guide:"관찰 패널의 <b>이온 이동</b> 탭에서 <b>전류 흘려 주기</b>를 눌러 양이온과 음이온을 각각 관찰해 보세요.",
   a:`양이온은 <span class="hi">(−)극</span>으로, 음이온은 <span class="hi">(+)극</span>으로 이동합니다.
      서로 다른 종류의 전하 사이에는 <span class="hi">끌어당기는 전기력</span>이 작용하기 때문입니다.
      이 실험으로 이온이 실제로 전하를 띠고 있음을 확인할 수 있습니다.`,
@@ -4124,14 +4302,14 @@ hs:{
 atom:[
  {id:"hs-a1", std:"[10통과1-02-03] 연계",
   q:"양성자 수는 같고 중성자 수가 다른 원자들을 무엇이라 하는가? 이들의 화학적 성질이 서로 같은 까닭을 전자 배치로 설명하시오.",
-  guide:"탄소나 염소를 고른 뒤 <b>동위원소 선택</b>에서 질량수를 바꿔 가며 전자 배치가 달라지는지 확인하세요.",
+  guide:"탄소나 염소를 고른 뒤 관찰 패널의 <b>동위원소</b> 탭에서 질량수를 바꿔 가며 전자 배치가 달라지는지 확인하세요.",
   a:`<span class="hi">동위원소</span>라고 합니다. 화학적 성질은 원자핵 주위의 <span class="hi">전자 배치</span>,
      특히 가장 바깥 껍질의 전자 수로 결정되는데, 동위원소는 양성자 수가 같으므로 전자 수와 전자 배치도 같습니다.
      달라지는 것은 중성자 수뿐이므로 <span class="hi">질량수(질량)</span>만 차이가 납니다.`,
   try:[["탄소로 확인",6],["염소로 확인",17]]},
  {id:"hs-a2", std:"[10통과1-02-01] 연계",
   q:"질량수와 원자량은 어떻게 다른가? 염소의 원자량이 약 35.5인 까닭과 연결지어 설명하시오.",
-  guide:"염소의 동위원소 목록에서 ³⁵Cl와 ³⁷Cl의 <b>존재 비율</b>을 확인해 보세요.",
+  guide:"염소를 고른 뒤 관찰 패널 <b>동위원소</b> 탭의 목록에서 ³⁵Cl와 ³⁷Cl의 <b>존재 비율</b>을 확인해 보세요.",
   a:`<span class="hi">질량수</span>는 한 원자의 양성자 수와 중성자 수를 더한 정수입니다.
      <span class="hi">원자량</span>은 자연에 존재하는 동위원소의 질량을 존재 비율로 평균한 값이라 정수가 아닐 수 있습니다.
      염소는 ³⁵Cl가 약 75%, ³⁷Cl가 약 25%로 존재하므로 평균이 약 35.5가 됩니다.`,
@@ -4161,14 +4339,14 @@ atom:[
 ion:[
  {id:"hs-i1", std:"[10통과1-02-03] 연계",
   q:"Na⁺과 Ne은 전자 수가 10개로 같다. 두 입자의 성질이 다른 까닭을 원자핵의 전하와 연결지어 설명하시오.",
-  guide:"두 입자의 <b>양성자 수</b>를 각각 적어 비교하고, 전체 전하량 계산 결과를 확인하세요.",
+  guide:"두 입자의 <b>양성자 수</b>를 각각 적어 비교하고, 관찰 패널 <b>전하량</b> 탭의 <b>전체 전하량 합계</b>를 확인하세요.",
   a:`전자 배치는 같지만 <span class="hi">원자핵의 (+)전하가 다르기</span> 때문입니다.
      Na⁺의 핵전하는 +11, Ne은 +10이므로 Na⁺은 전체적으로 +1의 전하를 띤 이온이고 Ne은 중성 원자입니다.
      또한 Na⁺은 같은 수의 전자를 더 센 힘으로 끌어당겨 <span class="hi">반지름이 Ne보다 작습니다</span>.`,
   try:[["Na⁺ 만들기","ion:11:1"],["네온 보기","atom:10"]]},
  {id:"hs-i2", std:"[10통과1-02-03] 연계",
   q:"나트륨 원자(Na)와 나트륨 이온(Na⁺)의 크기를 비교하고, 그 까닭을 전자 껍질 수와 핵의 인력으로 설명하시오.",
-  guide:"‘전자 껍질’ 칸에서 전자를 잃기 전과 후의 <b>껍질 수</b>가 어떻게 달라지는지 보세요.",
+  guide:"관찰 패널 <b>껍질</b> 탭에서 전자를 잃기 전과 후의 <b>전자 껍질 수</b>가 어떻게 달라지는지 보세요.",
   a:`<span class="hi">Na⁺이 Na보다 훨씬 작습니다</span>.
      Na(2 8 1)가 가장 바깥 M 껍질의 전자를 잃으면 껍질이 하나 줄어 Na⁺(2 8)이 되고,
      남은 10개의 전자를 +11의 핵전하가 <span class="hi">더 강하게 끌어당기기</span> 때문입니다.`,
@@ -4319,6 +4497,9 @@ function paintInqCount(){
     if(t === "atom" || t === "ion"){
       const l = INQ[ST.level][t];
       el.textContent = `${l.filter(x=>ansDone(x.id)).length} / ${l.length} 작성`;
+    }else if(t === "short"){
+      el.textContent = `${c.done}/${c.total}`;
+      el.classList.toggle("full", c.total>0 && c.done>=c.total);
     }else{
       el.textContent = `${c.done} / ${c.total} 작성`;
     }
@@ -4865,12 +5046,16 @@ function renderIon(){
   $("#gainE").disabled = noMore;
   $("#loseE").disabled = noLeft;
   const hint = $("#eHint");
-  hint.classList.toggle("show", noMore || noLeft);
+  hint.classList.toggle("warn", noMore || noLeft);
   hint.innerHTML = noLeft
-    ? `전자를 모두 잃어 <b>더 잃을 전자가 없습니다</b>. ‘＋ 전자 얻기’로 되돌리거나 ↺ 버튼을 눌러 원래 원자로 돌아가세요.`
+    ? `전자를 모두 잃었어요. <b>전자 얻기</b>로 되돌리거나 ↺ 버튼으로 원래 원자로 돌아가세요.`
     : noMore
-      ? `이 원소가 실제로 얻을 수 있는 것보다 <b>전자를 너무 많이 얻었습니다</b>. ‘− 전자 잃기’로 되돌려 보세요.`
-      : "";
+      ? `이 원소가 실제로 얻는 것보다 전자가 많아요. <b>전자 잃기</b>로 되돌려 보세요.`
+      : (ST.ionDelta === 0
+          ? `전자를 잃으면 <b>양이온</b>, 얻으면 <b>음이온</b>이 됩니다`
+          : (ST.ionDelta > 0
+              ? `전자를 <b>${ST.ionDelta}개</b> 잃어 <b>양이온</b>이 되었어요 · ↺ 로 되돌릴 수 있어요`
+              : `전자를 <b>${-ST.ionDelta}개</b> 얻어 <b>음이온</b>이 되었어요 · ↺ 로 되돌릴 수 있어요`));
 
   /* 모형 */
   if(!ionView) ionView = new AtomView($("#ionBox"));
@@ -7245,13 +7430,14 @@ function refreshReport(){
 /* 상단 입력 줄로 눈길을 끌어 준다 — 이름이 비었을 때 */
 function focusStuBar(msg){
   const bar = $("#stuBar");
+  stuBarOpen(true);
   $("#fName").classList.add("invalid");
   bar.classList.remove("flash");
   void bar.offsetWidth;              /* 애니메이션을 다시 태우기 위한 리플로 */
   bar.classList.add("flash");
   setTimeout(()=>bar.classList.remove("flash"), 950);
   $("#inName").focus();
-  toast(msg || "상단 입력 줄에 이름을 먼저 적어 주세요");
+  toast(msg || "오른쪽 위 🎓 칸에 이름을 먼저 적어 주세요");
 }
 
 /* ---------------------------------------------------------------
@@ -7264,9 +7450,9 @@ function askStudent(next){
   const isImg = next==="shot" || next==="shot2" || next==="gmimg";
 
   if(!STU.name){
-    focusStuBar(!next ? "상단 입력 줄에 학번과 이름을 적어 주세요"
-              : isImg ? "이미지에 넣을 이름을 상단 입력 줄에 적어 주세요"
-              : "리포트에 인쇄할 이름을 상단 입력 줄에 적어 주세요");
+    focusStuBar(!next ? "오른쪽 위 🎓 칸에 학번과 이름을 적어 주세요"
+              : isImg ? "이미지에 넣을 이름을 🎓 칸에 적어 주세요"
+              : "리포트에 인쇄할 이름을 🎓 칸에 적어 주세요");
     return;
   }
   $("#fName").classList.remove("invalid");
@@ -7482,8 +7668,8 @@ function switchView(v){
   });
   if(window.paintNavFade) setTimeout(paintNavFade, 320);
   $$(".view").forEach(s=>s.classList.toggle("active", s.id==="view-"+v));
-  if(v==="atom"){ renderAtom(); requestAnimationFrame(()=>atomView && atomView.fit()); }
-  if(v==="ion"){  renderIon();  requestAnimationFrame(()=>ionView && ionView.fit()); }
+  if(v==="atom"){ renderAtom(); requestAnimationFrame(syncStages); }
+  if(v==="ion"){  renderIon();  requestAnimationFrame(syncStages); }
   if(v==="obs")  renderObs();
   if(v==="dict") renderDict();
   if(v==="inq") paintInqCount();
@@ -7550,6 +7736,10 @@ function wire(){
 
   /* --- 학습자 정보 입력 줄 --- */
   /* 적는 즉시 STU에 반영해 둔다 (기기에는 저장하지 않는다) */
+  $("#btnStu").onclick = ev=>{ ev.stopPropagation(); stuBarOpen(); };
+  $("#stuBar").addEventListener("click", ev=> ev.stopPropagation());
+  document.addEventListener("click", ()=>{ if($("#stuBar").classList.contains("open")) stuBarOpen(false); });
+
   ["#inGrade","#inClass","#inNo","#inName"].forEach(sel=>{
     $(sel).addEventListener("input", ev=>{
       if(sel !== "#inName"){
@@ -7557,6 +7747,7 @@ function wire(){
         if(v !== ev.target.value) ev.target.value = v;
       }
       readStuBar();
+      paintStuChip();
       if(STU.name) $("#fName").classList.remove("invalid");
     });
   });
@@ -7568,7 +7759,7 @@ function wire(){
       ev.preventDefault();
       readStuBar();
       if(i < stuSeq.length-1){ $(stuSeq[i+1]).focus(); }
-      else{ ev.target.blur(); if(STU.name) toast(`${stuLabel()} 학생으로 진행합니다`,"ok"); }
+      else{ ev.target.blur(); stuBarOpen(false); if(STU.name) toast(`${stuLabel()} 학생으로 진행합니다`,"ok"); }
     });
   });
 
@@ -7800,6 +7991,8 @@ function wire(){
 
   /* --- 이온 모드 --- */
   $("#pickIon").onclick = ()=>openPick("ion");
+  $("#prevElIon").onclick = ()=>setIonZ(ST.ionZ<=1 ? 118 : ST.ionZ-1);
+  $("#nextElIon").onclick = ()=>setIonZ(ST.ionZ>=118 ? 1 : ST.ionZ+1);
   $("#loseE").onclick = ()=>{
     const e = EL(ST.ionZ);
     if(e.z - ST.ionDelta <= 0){ toast("더 이상 잃을 전자가 없습니다"); return; }
@@ -7954,10 +8147,12 @@ function wire(){
       case " ": ev.preventDefault(); setPlaying(!ST.playing); break;
       case "ArrowLeft":
         if(ST.view==="atom"){ $("#prevEl").click(); }
+        else if(ST.view==="ion"){ $("#prevElIon").click(); }
         else if(ST.view==="obs"){ $("#obPrev").click(); }
         break;
       case "ArrowRight":
         if(ST.view==="atom"){ $("#nextEl").click(); }
+        else if(ST.view==="ion"){ $("#nextElIon").click(); }
         else if(ST.view==="obs"){ $("#obNext").click(); }
         break;
       case "ArrowUp":   if(ST.view==="ion"){ ev.preventDefault(); $("#loseE").click(); } break;
@@ -7976,6 +8171,10 @@ function wire(){
       case "d": case "D": case "ㅇ": $("#btnTheme").click(); break;
       case "b": case "B": case "ㅠ": $("#btnScore").click(); break;
       case "h": case "H": case "ㅗ": openModal("#helpModal"); break;
+      case "Escape":
+        if($$(".rail.open").length){ $$(".rail.open").forEach(r=> setRail(r, false)); break; }
+        if($("#stuBar").classList.contains("open")) stuBarOpen(false);
+        break;
       case "r": case "R": case "ㄱ": openReport(); break;
       case "t": case "T": case "ㅅ": theoryOpen(); break;
       case "m": case "M": case "ㅡ": setLevel(ST.level==="ms"?"hs":"ms"); break;
@@ -7985,15 +8184,133 @@ function wire(){
   window.addEventListener("resize", ()=>{ atomView&&atomView.fit(); ionView&&ionView.fit(); });
 }
 
+/* =========================================================================
+   실습 화면 — 조작 독과 관찰 레일
+   · 독·이름표가 차지한 높이를 재어 모형이 놓일 실사용 영역을 계산한다 (§3.1)
+   · 넓은 화면에서 레일은 곁줄, 좁은 화면에서는 하단 시트로 열린다 (§3)
+   ========================================================================= */
+const narrowRail = () => window.matchMedia("(max-width:1080px)").matches;
+
+/* 무대의 실사용 영역 — 전체에서 위쪽 HUD·이름표와 아래쪽 독을 뺀 나머지 */
+function syncStageBox(stage){
+  if(!stage) return;
+  const sb = stage.getBoundingClientRect();
+  if(!sb.height) return;
+  let top = 0;
+  stage.querySelectorAll(".stage-badge, .atom-caption").forEach(el=>{
+    const b = el.getBoundingClientRect();
+    if(b.height) top = Math.max(top, b.bottom - sb.top);
+  });
+  const dock = stage.querySelector(".dock");
+  const dh = dock ? dock.getBoundingClientRect().height + 12 : 0;
+  stage.style.setProperty("--hud-h", Math.round(top + 8) + "px");
+  stage.style.setProperty("--dock-h", Math.round(dh) + "px");
+}
+function syncStages(){
+  $$(".view.exp .stage").forEach(syncStageBox);
+  /* 토스트가 조작 독을 가리지 않도록 독 높이만큼 띄운다 */
+  const act = $(".view.exp.active .stage");
+  document.documentElement.style.setProperty("--toast-lift",
+    act ? ((parseInt(act.style.getPropertyValue("--dock-h")) || 0) + 46) + "px" : "0px");
+  atomView && atomView.fit();
+  ionView  && ionView.fit();
+}
+
+function setRail(rail, open){
+  if(!rail) return;
+  const split = rail.closest(".split");
+  const btn   = $('[aria-controls="' + rail.id + '"]');
+  if(narrowRail()){
+    rail.classList.toggle("open", open);
+    split && split.classList.remove("rail-off");
+  }else{
+    rail.classList.remove("open");
+    split && split.classList.toggle("rail-off", !open);
+  }
+  if(btn){
+    btn.setAttribute("aria-expanded", String(open));
+    const lb = btn.querySelector(".lb");
+    if(lb) lb.textContent = open && !narrowRail() ? "패널 접기" : "관찰 패널";
+  }
+  const sheet = narrowRail() && $$(".rail.open").length > 0;
+  document.body.classList.toggle("sheet-open", sheet);
+  const sc = $("#railScrim"); if(sc) sc.hidden = !sheet;
+  requestAnimationFrame(syncStages);
+}
+
+function wireRails(){
+  $$(".rail").forEach(rail=>{
+    /* 관찰 항목 전환 — 한 번에 한 가지만 보여 레일이 길어지지 않게 한다 */
+    const tabs = Array.from(rail.querySelectorAll(".rail-tabs [role=tab]"));
+    rail.querySelector(".rail-tabs").addEventListener("click", ev=>{
+      const b = ev.target.closest("[role=tab]"); if(!b) return;
+      tabs.forEach(t=> t.setAttribute("aria-selected", String(t===b)));
+      rail.querySelectorAll(".rail-panel").forEach(p=> p.classList.toggle("on", p.dataset.rp===b.dataset.rp));
+      rail.querySelector(".rail-body").scrollTop = 0;
+    });
+
+    const btn = $('[aria-controls="' + rail.id + '"]');
+    if(btn) btn.onclick = ()=> setRail(rail, narrowRail() ? !rail.classList.contains("open")
+                                                         : rail.closest(".split").classList.contains("rail-off"));
+    const cls = rail.querySelector(".rail-close");
+    if(cls) cls.onclick = ()=> setRail(rail, false);
+  });
+
+  const scrim = $("#railScrim");
+  if(scrim) scrim.onclick = ()=> $$(".rail.open").forEach(r=> setRail(r, false));
+
+  /* 좁은 화면에서는 시트가 닫힌 채로, 넓은 화면에서는 곁줄이 펼쳐진 채로 시작한다 */
+  $$(".rail").forEach(r=> setRail(r, !narrowRail()));
+
+  if(window.ResizeObserver){
+    const ro = new ResizeObserver(()=> syncStages());
+    $$(".view.exp .dock, .view.exp .stage").forEach(el=> ro.observe(el));
+  }
+  /* 폭이 바뀌면 독이 한 줄 ↔ 두 줄로 접힌 뒤의 높이로 다시 잰다 */
+  const reflow = ()=>{ syncStages(); requestAnimationFrame(syncStages); setTimeout(syncStages, 160); };
+  window.addEventListener("resize", reflow);
+  window.addEventListener("orientationchange", reflow);
+
+  /* 곁줄 ↔ 하단 시트 경계를 넘을 때는 미디어 쿼리로 확실하게 잡는다 */
+  const mq = window.matchMedia("(max-width:1080px)");
+  const onMq = ()=>{ syncRailMode(); reflow(); };
+  if(mq.addEventListener) mq.addEventListener("change", onMq);
+  else if(mq.addListener) mq.addListener(onMq);
+}
+
+/* 화면 폭이 바뀌면 레일 형태(곁줄 ↔ 하단 시트)를 다시 맞추고 상태 표시도 함께 되돌린다 */
+function syncRailMode(){
+  $$(".rail").forEach(rail=>{
+    const split = rail.closest(".split");
+    if(narrowRail()){
+      /* 하단 시트 — 열려 있던 상태를 그대로 이어 간다 */
+      split && split.classList.remove("rail-off");
+      setRail(rail, rail.classList.contains("open"));
+    }else{
+      /* 곁줄 — 접어 두지 않았다면 펼친 상태로 되돌린다 */
+      rail.classList.remove("open");
+      setRail(rail, !(split && split.classList.contains("rail-off")));
+    }
+  });
+}
+
 /* 상단바·입력 줄·저작권 띠가 차지하는 높이를 재어 무대 높이 계산에 쓴다.
    (좁은 화면에서 줄바꿈이 생기면 높이가 달라지므로 크기 변화를 지켜본다) */
 function syncChrome(){
-  const top = $("header.top"), bar = $("#stuBar"), foot = $(".appfoot");
-  const fh = foot ? foot.offsetHeight : 0;
-  const ch = (top ? top.offsetHeight : 0) + (bar ? bar.offsetHeight : 0) + fh;
+  const top = $("header.top");
   const r = document.documentElement.style;
-  r.setProperty("--chrome-h", ch + "px");
-  r.setProperty("--foot-h",   fh + "px");
+  r.setProperty("--chrome-h", (top ? top.offsetHeight : 0) + "px");
+  r.setProperty("--foot-h", "0px");
+}
+
+/* 팝오버 꼬리를 헤더의 🎓 칩 아래에 맞춘다 */
+function syncStuArrow(){
+  const chip = $("#btnStu"), bar = $("#stuBar");
+  if(!chip || !bar || !bar.classList.contains("open")) return;
+  const cb = chip.getBoundingClientRect();
+  const w  = bar.offsetWidth || 430;
+  const right = Math.max(14, Math.min(w - 24, window.innerWidth - cb.left - cb.width/2 - 12));
+  bar.style.setProperty("--stu-arrow", Math.round(right) + "px");
 }
 
 /* =========================================================================
@@ -8025,14 +8342,19 @@ function init(){
   /* 저작권 연도는 늘 오늘에 맞춘다 */
   const ftY = $("#ftYear"); if(ftY) ftY.textContent = new Date().getFullYear();
 
+  wireRails();
   syncChrome();
-  window.addEventListener("resize", syncChrome);
+  window.addEventListener("resize", ()=>{ syncChrome(); syncRailMode(); });
   if(window.ResizeObserver){
     const ro = new ResizeObserver(syncChrome);
-    [$("header.top"), $("#stuBar"), $(".appfoot")].forEach(el=>el && ro.observe(el));
+    [$("header.top")].forEach(el=>el && ro.observe(el));
   }
 
-  setTimeout(()=>{ atomView&&atomView.fit(); }, 60);
+  /* 글꼴·레이아웃이 자리를 잡은 뒤 한 번 더 재어 실사용 영역을 확정한다 */
+  setTimeout(syncStages, 60);
+  setTimeout(syncStages, 320);
+  window.addEventListener("load", syncStages);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(syncStages).catch(()=>{});
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
 else init();
