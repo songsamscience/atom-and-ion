@@ -174,10 +174,12 @@ main{flex:1 1 auto;min-height:0;position:relative;overflow:hidden}
 .view{position:absolute;inset:0;display:none;overflow:auto;-webkit-overflow-scrolling:touch}
 .view.active{display:block}
 
-/* 공통 2단 레이아웃 */
-.split{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:14px;padding:14px;min-height:100%;align-items:start}
+/* 공통 2단 레이아웃 — 왼쪽(실습 무대)을 최대한 넓게 잡는다 */
+.split{display:grid;grid-template-columns:minmax(0,1fr) 348px;gap:14px;padding:14px;min-height:100%;align-items:start}
 .stage-col{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:calc(100dvh - var(--chrome-h, var(--hdr-h)) - 28px)}
 .side-col{display:flex;flex-direction:column;gap:12px;min-width:0}
+/* 넓은 화면에서는 곁줄을 고정 폭으로 두고 남는 공간을 모두 무대에 준다 */
+@media (min-width:1500px){ .split{grid-template-columns:minmax(0,1fr) 366px;gap:16px;padding:16px} }
 @media (max-width:1080px){
   .split{grid-template-columns:1fr}
   .stage-col{min-height:auto}
@@ -211,7 +213,7 @@ main{flex:1 1 auto;min-height:0;position:relative;overflow:hidden}
 
 /* ===================== 무대(원자 모형) ===================== */
 .stage{
-  position:relative;flex:1 1 auto;min-height:300px;border-radius:var(--r-l);overflow:hidden;
+  position:relative;flex:1 1 auto;min-height:clamp(320px, 58vh, 660px);border-radius:var(--r-l);overflow:hidden;
   background:
     radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f4f9ff 55%, #eaf3fd 100%);
   border:1px solid var(--line);box-shadow:var(--shadow-m);
@@ -256,7 +258,7 @@ html[data-theme="dark"] .sbtn{background:rgba(24,37,53,.9)}
 .sbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
 /* 원자 캔버스 */
-.atom-wrap{position:absolute;inset:0;display:grid;place-items:center;padding:16px 16px 58px}
+.atom-wrap{position:absolute;inset:0;display:grid;place-items:center;padding:12px 12px 52px}
 .atom{position:relative;width:min(100%,100%);aspect-ratio:1/1;max-height:100%;max-width:100%}
 
 /* 전자구름(큰 구) */
@@ -279,13 +281,34 @@ html[data-theme="dark"] .cloud{
 }
 .cloud.hidden{opacity:0}
 
-/* 전자껍질 궤도 */
+/* 전자껍질 궤도 — 안쪽 껍질은 옅게, 가장 바깥(원자가) 껍질은 또렷하게 */
 .orbit{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;
-  border:1.6px dashed rgba(84,140,200,.42);pointer-events:none;transition:opacity .35s;
+  border:1.5px dashed rgba(84,140,200,.30);pointer-events:none;transition:opacity .35s, width .3s, height .3s;
 }
-html[data-theme="dark"] .orbit{border-color:rgba(140,190,240,.35)}
+html[data-theme="dark"] .orbit{border-color:rgba(140,190,240,.26)}
+/* 반응에 참여하는 껍질이므로 실선 + 옅은 빛으로 눈에 먼저 들어오게 한다 */
+.orbit.valence{
+  border-style:solid;border-color:rgba(47,127,224,.50);
+  box-shadow:0 0 0 6px rgba(47,127,224,.045), inset 0 0 22px rgba(47,127,224,.05);
+}
+html[data-theme="dark"] .orbit.valence{
+  border-color:rgba(120,185,255,.55);
+  box-shadow:0 0 0 6px rgba(120,185,255,.06), inset 0 0 22px rgba(120,185,255,.06);
+}
+/* 이온이 되며 비워진 껍질 — 원래 자리를 점선 흔적으로 남긴다 */
+.orbit.ghost{border-style:dotted;border-color:rgba(150,170,192,.45);opacity:.8}
+html[data-theme="dark"] .orbit.ghost{border-color:rgba(130,155,185,.42)}
 .orbit.hidden{opacity:0}
+
+/* 이온의 전하 — 모형 둘레를 은은한 고리로 감싼다 */
+.chg-aura{
+  position:absolute;left:50%;top:50%;width:100%;height:100%;z-index:0;
+  transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+}
+.chg-aura.cat{background:radial-gradient(circle, rgba(232,57,47,0) 50%, rgba(232,57,47,.11) 79%, rgba(232,57,47,0) 100%)}
+.chg-aura.an{background:radial-gradient(circle, rgba(31,122,224,0) 50%, rgba(31,122,224,.13) 79%, rgba(31,122,224,0) 100%)}
+
 .orbit-label{
   position:absolute;transform:translate(-50%,-50%);z-index:8;pointer-events:none;
   font-size:10.5px;font-weight:900;color:var(--brand);
@@ -294,6 +317,12 @@ html[data-theme="dark"] .orbit{border-color:rgba(140,190,240,.35)}
   box-shadow:var(--shadow-s);
 }
 .orbit-label b{color:var(--ink);font-weight:900}
+/* 가장 바깥 껍질 이름표 — 채워서 강조 */
+.orbit-label.valence{background:var(--brand);border-color:var(--brand);color:#fff}
+.orbit-label.valence b{color:#fff}
+/* 비워진 껍질 이름표 */
+.orbit-label.ghost{color:var(--ink-3);border-style:dashed;background:var(--panel-2)}
+.orbit-label.ghost b{color:var(--ink-3);font-weight:800}
 
 /* 입자 공통 */
 .pt{position:absolute;border-radius:50%;display:grid;place-items:center;will-change:transform;
@@ -309,9 +338,26 @@ html[data-theme="dark"] .orbit{border-color:rgba(140,190,240,.35)}
   box-shadow:inset -3px -4px 7px rgba(60,100,10,.4), 0 3px 8px rgba(130,190,40,.32)}
 .pt.electron{background:radial-gradient(circle at 32% 27%, #9fd4ff 0%, var(--electron) 58%, #10508f 100%);
   box-shadow:inset -3px -4px 7px rgba(10,50,100,.45), 0 3px 9px rgba(31,122,224,.4);z-index:4}
+/* 가장 바깥 껍질의 전자 — 결합에 참여하는 전자이므로 빛을 둘러 준다 */
+.pt.electron.val{
+  box-shadow:inset -3px -4px 7px rgba(10,50,100,.45), 0 3px 9px rgba(31,122,224,.4),
+             0 0 0 2px rgba(255,255,255,.55), 0 0 14px rgba(47,127,224,.55);
+  z-index:5;
+}
+html[data-theme="dark"] .pt.electron.val{
+  box-shadow:inset -3px -4px 7px rgba(10,50,100,.45), 0 3px 9px rgba(31,122,224,.4),
+             0 0 0 2px rgba(120,185,255,.30), 0 0 16px rgba(90,170,255,.6);
+}
 .pt .sign{position:relative;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.22)}
 
 .nucleus{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3}
+/* 원자핵의 경계를 옅은 고리로 그려, 뭉쳐 있는 덩어리임을 분명히 한다 */
+.nucleus:not(.simple)::after{
+  content:"";position:absolute;left:50%;top:50%;width:116%;height:116%;z-index:-1;
+  transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+  border:1px dashed rgba(200,70,60,.28);
+}
+html[data-theme="dark"] .nucleus:not(.simple)::after{border-color:rgba(255,130,120,.26)}
 /* 원자핵 주변 발광 — (+)전하가 모인 중심임을 빛으로 알린다 */
 .nucleus::before{
   content:"";position:absolute;left:50%;top:50%;width:230%;height:230%;z-index:-1;
@@ -1081,6 +1127,65 @@ html[data-theme="dark"] .lv-tag.hs{background:#2b2350;color:#c3b0ff}
 .field-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
 @media (max-width:460px){.field-row{grid-template-columns:1fr 1fr}}
 
+/* ===================== 탐구 질문 바로가기 (원자·이온 화면) ===================== */
+.inq-jump{
+  display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;text-align:left;
+  border:1px solid var(--line);border-radius:var(--r-m);background:var(--panel);
+  box-shadow:var(--shadow-s);transition:.15s;
+}
+.inq-jump:hover{border-color:var(--brand);background:var(--brand-soft);transform:translateY(-1px)}
+.inq-jump .ic{
+  width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--brand-soft);font-size:15px;
+}
+.inq-jump .tx{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}
+.inq-jump .tx b{font-size:12.5px;font-weight:900;letter-spacing:-.02em}
+.inq-jump .tx i{font-size:10.5px;font-style:normal;font-weight:700;color:var(--ink-3);line-height:1.35}
+.inq-jump .pg{
+  flex:0 0 auto;font-size:10.5px;font-weight:900;color:var(--brand-dark);
+  background:var(--brand-soft);padding:3px 8px;border-radius:99px;white-space:nowrap;
+}
+.inq-jump .go{flex:0 0 auto;color:var(--ink-3);font-size:12px;font-weight:900}
+
+/* ===================== 탐구 질문 화면 ===================== */
+.inq-wrap{max-width:1320px;margin:0 auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.inq-hero{
+  border:1px solid var(--line);border-radius:var(--r-l);background:var(--panel);
+  box-shadow:var(--shadow-s);padding:15px 17px;
+}
+.ih-top{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.ih-ic{
+  width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:0 0 auto;
+  font-size:21px;background:var(--brand-soft);
+}
+.ih-tx{flex:1 1 240px;min-width:0}
+.ih-tx h2{font-size:17px;font-weight:900;letter-spacing:-.03em;line-height:1.25}
+.ih-tx p{font-size:12.5px;font-weight:700;color:var(--ink-3);line-height:1.55;margin-top:3px}
+.ih-prog{display:flex;align-items:center;gap:10px;margin-top:12px}
+.ih-prog .bar{flex:1 1 auto;height:9px;border-radius:99px;background:var(--line);overflow:hidden}
+.ih-prog .bar i{display:block;height:100%;border-radius:99px;transition:width .4s;
+  background:linear-gradient(90deg,var(--brand),#63b3ff)}
+.ih-prog .pct{flex:0 0 auto;font-size:11.5px;font-weight:900;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.ih-rules{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.ih-rules .r{
+  font-size:11px;font-weight:700;color:var(--ink-3);line-height:1.4;
+  background:var(--panel-2);border:1px solid var(--line);padding:4px 10px;border-radius:99px;
+}
+.ih-rules .r b{color:var(--ink-2);font-weight:900}
+.ih-rules .r.warn{background:var(--anion-soft);border-color:transparent;color:var(--anion)}
+.ih-rules .r.warn b{color:var(--anion)}
+.ih-chip{
+  width:24px;height:24px;border-radius:8px;display:grid;place-items:center;flex:0 0 auto;
+  font-size:12.5px;color:#fff;
+}
+.ih-chip.atom{background:var(--brand)}
+.ih-chip.ion{background:var(--cation)}
+.inq-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.inq-cols .card-h h3{flex:0 0 auto}
+.inq-cols .card-h .btn{margin-left:auto}
+.inq-foot{font-size:11.5px;font-weight:700;color:var(--ink-3);text-align:center;line-height:1.55;padding:2px 4px 6px}
+@media (max-width:1080px){ .inq-cols{grid-template-columns:1fr} }
+
 /* ===================== 탐구 질문 · 서술형 ===================== */
 .inq-topbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:9px}
 .inq-topbar .lead{font-size:11.5px;font-weight:700;color:var(--ink-3);flex:1 1 120px;line-height:1.45}
@@ -1140,6 +1245,25 @@ html[data-theme="dark"] .model-ans .hi{background:rgba(0,0,0,.28)}
   width:52px;height:52px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;
   font-size:24px;background:var(--anion-soft);
 }
+
+/* 모범 답안을 보고 다시 쓰기 — 처음 답안은 잠긴 채 두고, 새 칸에 다시 정리한다 (§9) */
+.rev-box{
+  display:none;margin-top:10px;padding:12px 14px;border-radius:12px;
+  background:var(--brand-soft);border:1px solid color-mix(in srgb,var(--brand) 34%,transparent);
+}
+.rev-box.show{display:block;animation:slideIn .22s}
+.rev-box .rt{font-size:10.5px;font-weight:900;letter-spacing:.04em;color:var(--brand);display:block;margin-bottom:3px}
+.rev-box .rsub{font-size:12px;font-weight:700;color:var(--ink-3);line-height:1.55;margin-bottom:8px}
+.rev-box .rsub b{color:var(--ink-2)}
+.rev-box .wbox{background:var(--panel)}
+.rev-box .rmeta{display:flex;align-items:center;gap:8px;margin-top:7px}
+.rev-box .rcnt{font-size:11px;font-weight:800;color:var(--ink-3);margin-left:auto;font-variant-numeric:tabular-nums}
+.rev-box .rcnt.ok{color:var(--brand)}
+.rev-tag{
+  display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:900;
+  color:var(--brand);background:var(--brand-soft);padding:3px 9px;border-radius:99px;
+}
+.rev-tag[hidden]{display:none}
 
 /* ===================== 실제 이온과 비교 ===================== */
 .vs-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch}
@@ -1738,6 +1862,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
     <button class="mode-btn" role="tab" aria-selected="false" data-view="dict"><span class="ico">📖</span>이온 사전</button>
     <button class="mode-btn" role="tab" aria-selected="false" data-view="quiz"><span class="ico">✏️</span>이온 명명법 연습</button>
     <button class="mode-btn" role="tab" aria-selected="false" data-view="game"><span class="ico">🎮</span>이온 명명법 게임</button>
+    <button class="mode-btn" role="tab" aria-selected="false" data-view="inq"><span class="ico">📝</span>탐구 질문</button>
   </nav>
 
   <div class="tools">
@@ -1851,11 +1976,6 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
           <div class="sub" id="a-capsub">H · 원자 번호 1 · 질량수 1</div>
         </div>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><h3>탐구 질문 — 원자</h3><span class="lv-tag ms" id="inqLvA">중학교</span><span class="hint">서술형으로 답을 써 보세요</span></div>
-      <div class="card-b tight" id="inqBox"></div>
     </div>
   </div>
 
@@ -1994,6 +2114,13 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
         <p class="table-cap">여러 원소를 기록해 <b>양성자 수</b>가 원소마다 어떻게 다른지 나란히 비교해 보세요.</p>
       </div>
     </div>
+
+    <button class="inq-jump" data-inqgo="1">
+      <span class="ic">📝</span>
+      <span class="tx"><b>탐구 질문 — 원자</b><i>관찰한 내용을 서술형으로 정리해 보세요</i></span>
+      <span class="pg" data-inqcnt="atom">0 / 5 작성</span>
+      <span class="go">▸</span>
+    </button>
   </div>
  </div>
 </section>
@@ -2051,11 +2178,6 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
         </p>
         <div id="realBox" style="display:none;margin-top:11px"></div>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><h3>탐구 질문 — 이온</h3><span class="lv-tag ms" id="inqLvB">중학교</span><span class="hint">서술형으로 답을 써 보세요</span></div>
-      <div class="card-b tight" id="inqBoxIon"></div>
     </div>
   </div>
 
@@ -2170,6 +2292,13 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
         </p>
       </div>
     </div>
+
+    <button class="inq-jump" data-inqgo="2">
+      <span class="ic">📝</span>
+      <span class="tx"><b>탐구 질문 — 이온</b><i>관찰한 내용을 서술형으로 정리해 보세요</i></span>
+      <span class="pg" data-inqcnt="ion">0 / 5 작성</span>
+      <span class="go">▸</span>
+    </button>
   </div>
  </div>
 </section>
@@ -2446,6 +2575,58 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
   </div>
 </section>
 
+<!-- ============ 7. 탐구 질문 (서술형) ============ -->
+<section class="view" id="view-inq">
+  <div class="inq-wrap">
+
+    <div class="inq-hero">
+      <div class="ih-top">
+        <div class="ih-ic" aria-hidden="true">📝</div>
+        <div class="ih-tx">
+          <h2>탐구 질문 — 서술형으로 정리하기</h2>
+          <p>모형을 관찰한 내용을 <b>내 문장</b>으로 설명해 보세요. 2022 개정 과학과 교육과정 성취기준에 맞춘 문항입니다.</p>
+        </div>
+        <span class="lv-tag ms" id="inqLvTop">중학교</span>
+      </div>
+      <div class="ih-prog">
+        <div class="bar"><i id="inqBar" style="width:0%"></i></div>
+        <span class="pct" data-inqcnt>0 / 10 작성</span>
+      </div>
+      <div class="ih-rules">
+        <span class="r"><b>💡 힌트</b> 몇 번이든 열 수 있고 답안을 잠그지 않아요</span>
+        <span class="r"><b>📖 모범 답안</b> 20자 이상 쓰면 열립니다</span>
+        <span class="r warn"><b>🔒 열람하면 잠김</b> 처음 답안은 고칠 수 없어요</span>
+        <span class="r"><b>✏️ 다시 쓰기</b> 모범 답안을 본 뒤 새 칸에 다시 정리해요</span>
+        <span class="r"><b>💾 자동 저장</b> 이 기기에 저장되어 리포트로 인쇄됩니다</span>
+      </div>
+    </div>
+
+    <div class="inq-cols">
+      <div class="card">
+        <div class="card-h">
+          <span class="ih-chip atom">⚛</span>
+          <h3>원자</h3><span class="lv-tag ms" id="inqLvA">중학교</span>
+          <button class="btn sm" data-inqback="atom" title="원자 모형 화면으로 이동">⚛ 모형 보기</button>
+        </div>
+        <div class="card-b tight" id="inqBox"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <span class="ih-chip ion">⚡</span>
+          <h3>이온</h3><span class="lv-tag ms" id="inqLvB">중학교</span>
+          <button class="btn sm" data-inqback="ion" title="이온 만들기 화면으로 이동">⚡ 모형 보기</button>
+        </div>
+        <div class="card-b tight" id="inqBoxIon"></div>
+      </div>
+    </div>
+
+    <p class="inq-foot">
+      작성한 답안은 오른쪽 위 <b>📄 학습 리포트</b>에서 한꺼번에 인쇄하거나 PDF로 저장할 수 있습니다.
+    </p>
+  </div>
+</section>
+
 </main>
 
 <!-- ============ 저작권 ============ -->
@@ -2508,8 +2689,11 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
           고등학교는 <b>동위원소·전자 배치·옥텟 규칙·이온의 크기</b>까지 함께 봅니다. 탐구 질문과 연습 문항도 함께 바뀝니다.</div></div>
         <div class="help-item"><div class="no">★</div><div class="tx"><b>학번·이름</b> — 화면 맨 위 🎓 입력 줄에 학년·반·번호와 이름을 적습니다. 리포트·PDF·모형 이미지·게임 결과를 저장하면 학번·이름·날짜가 <b>산출물 안에 함께 인쇄</b>됩니다.
           <b>입력한 학번·이름은 이 기기에 저장되지 않습니다</b> — 화면을 새로 고치거나 닫으면 지워지므로, 여러 학생이 같은 컴퓨터를 써도 앞 사람 이름이 남지 않습니다. 저장 전에 이름이 비어 있으면 입력 줄이 깜박이며 알려 줍니다.</div></div>
-        <div class="help-item"><div class="no">★</div><div class="tx"><b>탐구 질문 서술형</b> — 질문을 누르면 답을 쓰는 칸이 열립니다. 자동 저장되고, <b>20자 이상</b> 쓰면 모범 답안을 열 수 있습니다.
-          <b>모범 답안을 열람한 문항은 답안을 더 고칠 수 없고</b> 🔒, 리포트에 열람 여부가 함께 표시됩니다.</div></div>
+        <div class="help-item"><div class="no">★</div><div class="tx"><b>탐구 질문 서술형</b> — 상단 탭 맨 오른쪽 <b>📝 탐구 질문</b>(<b>7</b> 키)에서 원자·이온 문항을 한 화면에 모아 풉니다.
+          질문을 누르면 답을 쓰는 칸이 열리고 자동 저장되며, <b>20자 이상</b> 쓰면 모범 답안을 열 수 있습니다.
+          <b>모범 답안을 열람한 문항은 처음 답안을 더 고칠 수 없지만</b> 🔒, 모범 답안 아래에 <b>✏️ 다시 쓰기 칸</b>이 열립니다.
+          모범 답안과 견주어 새로 정리한 답안을 여기에 쓰면, 리포트에 <b>처음 답안 · 모범 답안 · 다시 쓴 답안</b>이 나란히 인쇄됩니다.
+          원자·이온 화면 곁줄 맨 아래의 <b>📝 바로가기</b>를 눌러도 이동합니다.</div></div>
         <div class="help-item"><div class="no">★</div><div class="tx"><b>힌트 보기</b> — 답이 막힐 때 💡 버튼을 누르면 무엇을 살펴보면 되는지 알려 줍니다.
           <b>힌트는 답안을 잠그지 않아</b> 몇 번이든 열어 보고 이어서 고쳐 쓸 수 있습니다. 리포트에는 ‘힌트 봄’으로만 표시됩니다.</div></div>
         <div class="help-item"><div class="no">★</div><div class="tx"><b>이론 학습 자료</b> — 오른쪽 위 📖 책자 버튼(<b>T</b> 키)을 누르면 원자·이온의 핵심 개념을 <b>도해 카드</b>로 한 장씩 넘겨 볼 수 있습니다.
@@ -2538,7 +2722,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
         </a>
       </div>
       <div class="note" style="margin-top:12px">
-        <b>단축키</b> — Space: 전자 재생/정지 · ← →: 이전/다음 원소 · ↑ ↓: 전자 얻기/잃기 · 1~6: 모드 전환 · P: 주기율표 · N: 원자핵 전환 · M: 학교급 전환 · T: 이론 · R: 학습 리포트 · B: 업적 · F: 전체화면 · D: 밝게/어둡게 · H: 도움말 · Esc: 창 닫기
+        <b>단축키</b> — Space: 전자 재생/정지 · ← →: 이전/다음 원소 · ↑ ↓: 전자 얻기/잃기 · 1~7: 모드 전환 · P: 주기율표 · N: 원자핵 전환 · M: 학교급 전환 · T: 이론 · R: 학습 리포트 · B: 업적 · F: 전체화면 · D: 밝게/어둡게 · H: 도움말 · Esc: 창 닫기
         <br><b>게임 중</b> — 1 2 3 4: 답 고르기 · Enter: 넘어가기 · / : 힌트 · Space: 잠시 멈춤
       </div>
       <div class="btn-row" style="margin-top:12px;justify-content:space-between;align-items:center">
@@ -2592,8 +2776,9 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
       <div class="lock-ico">🔒</div>
       <h2 style="font-size:16.5px;font-weight:900;letter-spacing:-.03em;text-align:center;margin-bottom:8px">모범 답안을 볼까요?</h2>
       <p style="font-size:13px;font-weight:600;color:var(--ink-2);line-height:1.65;text-align:center;margin-bottom:16px">
-        모범 답안을 보면 이 문항의 <b>내 답안은 더 이상 고칠 수 없어요.</b><br>
-        지금까지 쓴 답안은 그대로 저장되어 리포트에 인쇄됩니다.
+        모범 답안을 보면 지금까지 쓴 <b>이 문항의 답안은 더 이상 고칠 수 없어요.</b><br>
+        대신 모범 답안 아래에 <b>✏️ 다시 쓰기 칸</b>이 열려, 새로 정리한 답안을 쓸 수 있어요.<br>
+        처음 답안과 다시 쓴 답안이 <b>모두 리포트에 함께 인쇄</b>됩니다.
       </p>
       <div class="btn-row" style="justify-content:center;gap:8px">
         <button class="btn" id="lockNo">조금 더 써 볼게요</button>
@@ -3040,7 +3225,7 @@ class AtomView{
   constructor(host){
     this.host = host;
     this.S = 300;
-    this.model = {p:1, n:0, e:1, shells:[1], sym:"H"};
+    this.model = {p:1, n:0, e:1, shells:[1], sym:"H", refShells:1, sizeK:1, charge:0};
     this.opt = {mode:"shell", nucSimple:false, sign:true, bigNuc:false, trail:false, labels:true, speed:1, playing:true};
     this.t = 0; this.last = 0; this.raf = null;
     this.els = {orbits:[], electrons:[], nucleons:[]};
@@ -3173,21 +3358,32 @@ class AtomView{
                         tilt, dir:(i%2?1:-1), shell:-1});
       }
     }else{
+      /* 껍질 자리는 ‘중성 원자일 때의 껍질 수(refShells)’를 기준으로 잡는다.
+         · 전자를 잃어 껍질이 하나 사라지면 이온이 눈에 띄게 작아진다 (Na > Na⁺)
+         · 남은 껍질은 원자일 때와 같은 자리에 그대로 있어 견주어 보기 쉽다
+         · sizeK 로 같은 껍질 수인 이온의 크기 차이(Cl < Cl⁻)까지 나타낸다 */
       const shells = m.shells;
-      const rIn  = nucR + ed*0.9 + 0.035*S;
-      const rOut = R - ed*0.62 - 0.012*S;
-      const k = shells.length;
-      for(let s=0;s<k;s++){
-        const rr = k===1 ? (rIn+rOut)/2 : rIn + (rOut-rIn)*s/(k-1);
-        orbits.push({r:rr, name:"KLMNOPQ"[s]||("N"+(s+1)), count:shells[s]});
+      const nRef  = Math.max(shells.length, m.refShells || 0, 1);
+      const kSize = m.sizeK || 1;
+      const rIn   = nucR + ed*0.9 + 0.035*S;
+      const rCap  = R - ed*0.62 - 0.012*S;             /* 원 안에 들어갈 수 있는 최대 반지름 */
+      const rOut  = Math.max(rIn + ed*0.5, Math.min(rCap, rCap*0.93*kSize));
+      for(let s=0;s<nRef;s++){
+        const rr = nRef===1 ? (rIn+rOut)/2 : rIn + (rOut-rIn)*s/(nRef-1);
         const cnt = shells[s];
+        if(cnt === undefined){                          /* 이온이 되며 비워진 껍질 */
+          orbits.push({r:rr, name:SHELL_NAME(s), count:0, ghost:true});
+          continue;
+        }
+        const val = (s === shells.length - 1);          /* 가장 바깥 껍질 = 원자가 껍질 */
+        orbits.push({r:rr, name:SHELL_NAME(s), count:cnt, valence:val});
         for(let i=0;i<cnt;i++){
           electrons.push({r:rr, cx:R, cy:R, ph:(i/cnt)*Math.PI*2 + s*0.4,
-                          sp:0.62/Math.pow(s+1,0.72), d:ed, tilt:1, dir:1, shell:s});
+                          sp:0.62/Math.pow(s+1,0.72), d:ed, tilt:1, dir:1, shell:s, val});
         }
       }
     }
-    return {S,R,nucleons,nucR,electrons,orbits,cloudR,simple,cloudMode,d,nE,N};
+    return {S,R,nucleons,nucR,electrons,orbits,cloudR,simple,cloudMode,d,nE,N,charge:(m.charge||0)};
   }
 
   build(){
@@ -3201,12 +3397,18 @@ class AtomView{
     if(L.cloudMode){
       const c = document.createElement("div"); c.className="cloud"; h.appendChild(c);
     }
-    /* 궤도 */
+    /* 이온의 전하를 은은한 고리로 알려 준다 */
+    if(!L.cloudMode && L.charge){
+      const au = document.createElement("div");
+      au.className = "chg-aura " + (L.charge>0 ? "cat" : "an");
+      h.appendChild(au);
+    }
+    /* 궤도 — 가장 바깥 껍질은 또렷하게, 비워진 껍질은 흔적만 */
     this.els.orbits = [];
     if(!L.cloudMode){
       L.orbits.forEach((ob,i)=>{
         const d = document.createElement("div");
-        d.className = "orbit";
+        d.className = "orbit" + (ob.ghost ? " ghost" : ob.valence ? " valence" : "");
         d.style.width = d.style.height = (ob.r*2)+"px";
         h.appendChild(d); this.els.orbits.push(d);
       });
@@ -3241,7 +3443,7 @@ class AtomView{
     const showSign = o.sign;
     L.electrons.forEach(e=>{
       const el = document.createElement("div");
-      el.className = "pt electron";
+      el.className = "pt electron" + (e.val ? " val" : "");
       el.style.width = el.style.height = e.d+"px";
       el.style.fontSize = (e.d*0.66)+"px";
       if(showSign && e.d>11) el.innerHTML = '<span class="sign">−</span>';
@@ -3266,8 +3468,8 @@ class AtomView{
       const alt = L.orbits.length >= 4;
       L.orbits.forEach((ob,i)=>{
         const lb = document.createElement("div");
-        lb.className = "orbit-label";
-        lb.innerHTML = `${ob.name} 껍질 <b>${ob.count}</b>`;
+        lb.className = "orbit-label" + (ob.ghost ? " ghost" : ob.valence ? " valence" : "");
+        lb.innerHTML = ob.ghost ? `${ob.name} 껍질 <b>비었음</b>` : `${ob.name} 껍질 <b>${ob.count}</b>`;
         lb.style.left = L.R + "px";
         lb.style.top  = ((alt && i % 2) ? (L.R + ob.r) : (L.R - ob.r)) + "px";
         h.appendChild(lb);
@@ -3341,9 +3543,14 @@ class AtomView{
       gr.addColorStop(1,"rgba(130,190,240,.85)");
       g.fillStyle=gr; g.beginPath(); g.arc(R,R,L.cloudR,0,7); g.fill();
     }else{
-      g.strokeStyle="rgba(84,140,200,.42)"; g.lineWidth=1.6; g.setLineDash([5,5]);
-      L.orbits.forEach(ob=>{ g.beginPath(); g.arc(R,R,ob.r,0,7); g.stroke(); });
-      g.setLineDash([]);
+      g.lineWidth=1.6;
+      L.orbits.forEach(ob=>{
+        if(ob.ghost){      g.strokeStyle="rgba(150,170,192,.50)"; g.setLineDash([2,5]); }
+        else if(ob.valence){ g.strokeStyle="rgba(47,127,224,.62)"; g.lineWidth=1.9; g.setLineDash([]); }
+        else{              g.strokeStyle="rgba(84,140,200,.34)"; g.lineWidth=1.6; g.setLineDash([5,5]); }
+        g.beginPath(); g.arc(R,R,ob.r,0,7); g.stroke();
+      });
+      g.setLineDash([]); g.lineWidth=1.6;
     }
     if(L.simple){
       ball(R,R,L.nucR*2,"#ff8f83","#e8392f","#b62419", (this.model.p>0?"+"+this.model.p:"0"));
@@ -3483,7 +3690,7 @@ function setLevel(lv, quiet){
 }
 
 /* 가장 바깥 껍질을 채우는 데 필요한 전자 수 · 가장 가까운 비활성 기체 (고등학교용) */
-const NOBLE = [2,10,18,36,54,86];
+const NOBLE = [2,10,18,36,54,86,118];
 function nearestNoble(nE){
   let best = null, gap = 1e9;
   NOBLE.forEach(n=>{ const d = Math.abs(n-nE); if(d<gap){ gap=d; best=n; } });
@@ -3496,22 +3703,54 @@ function nobleName(nE){
 /* 옥텟·안정성 안내 HTML — [10통과1-02-03] 전자 배치로 결합 이유 설명 */
 function octetHTML(shells, nE, isIon){
   if(!shells.length) return "";
-  const out  = shells[shells.length-1];
+  const out = shells[shells.length-1];
   const isNoble = NOBLE.indexOf(nE) >= 0;
-  const cap  = shells.length===1 ? 2 : 8;
-  const need = cap - out;
+
   if(isNoble)
     return `<div class="note" style="background:var(--ok-soft);border-color:#a9e2c9;color:#0e6e49">
       ✅ 가장 바깥 껍질이 <b>${out}개</b>로 가득 찬 <b>안정한 배치</b>입니다 — ${nobleName(nE)}과 같은 전자 배치.
       ${isIon ? "비활성 기체와 같은 배치를 이루었으므로 안정합니다." : "그래서 다른 원자와 거의 반응하지 않습니다."}</div>`;
-  if(isIon)
-    return `<div class="note">가장 바깥 껍질의 전자는 <b>${out}개</b>입니다. 가장 가까운 안정한 배치(${nobleName(nearestNoble(nE))})까지
-      ${Math.abs(nearestNoble(nE)-nE)}개의 전자가 차이 납니다.</div>`;
-  return `<div class="note">가장 바깥 껍질의 전자는 <b>${out}개</b>입니다.
-    ${need <= 3
-      ? `전자 <b>${need}개를 얻으면</b> ${nobleName(nearestNoble(nE))}과 같은 안정한 배치가 되므로 <b>−${need}가 음이온</b>이 되기 쉽습니다.`
-      : `전자 <b>${out}개를 잃으면</b> 앞 껍질까지가 안정한 배치가 되므로 <b>+${out}가 양이온</b>이 되기 쉽습니다.`}
-    <br><b>옥텟 규칙</b> — 원자는 가장 바깥 껍질에 전자 ${shells.length===1?"2":"8"}개를 채워 비활성 기체와 같은 배치를 이루려 합니다.</div>`;
+
+  /* ── 이미 이온이 된 상태 ── */
+  if(isIon){
+    const nb = nearestNoble(nE), gap = Math.abs(nb - nE);
+    return `<div class="note">가장 바깥 껍질의 전자는 <b>${out}개</b>입니다.
+      전자 수가 가장 가까운 비활성 기체 <b>${nobleName(nb)}</b>보다
+      <b>${gap}개 ${nb > nE ? "적어" : "많아"}</b> 아직 그와 같은 배치에는 이르지 못했습니다.</div>`;
+  }
+
+  /* ── 중성 원자 — 실제로 만드는 이온을 근거로 설명한다 ──
+     (‘가장 바깥 껍질 전자를 모두 잃는다’는 식의 단순 규칙은
+      탄소·규소·전이 금속에서 사실과 어긋나므로 쓰지 않는다) */
+  const e   = ELEMENTS.find(x => x.z === nE);
+  const cc  = e ? COMMON_CHARGE[e.sym] : undefined;
+  const head = `가장 바깥 껍질의 전자는 <b>${out}개</b>입니다. `;
+  const oct  = (tail)=>`<br><b>옥텟 규칙</b> — 원자는 가장 바깥 껍질에 전자 ${shells.length===1?"2개(헬륨 배치)":"8개"}를 채워
+      비활성 기체와 같은 배치를 이루려 합니다.${tail===false?"":" 다만 <b>전이 금속</b>처럼 이 규칙을 그대로 따르지 않는 원소도 많습니다."}`;
+
+  if(cc !== undefined){
+    const after = nE - cc;                                   /* 이온이 된 뒤의 전자 수 */
+    const nbTx  = NOBLE.indexOf(after) >= 0
+      ? ` 이때 전자 배치가 <b>${nobleName(after)}</b>과 같아져 안정해집니다.` : "";
+    /* 전이 금속은 가장 바깥 껍질보다 더 많은 전자를 잃기도 한다 (Cu 2,8,18,1 → Cu²⁺) */
+    const deepTx = (cc > out && e.cat === "tm")
+      ? ` 이때 가장 바깥 껍질의 전자를 먼저 잃고, <b>안쪽 껍질의 전자까지</b> 잃습니다.` : "";
+    const reals = realChargesOf(e.sym);
+    const multi = reals.length > 1
+      ? `<br>${esc(e.kor)}${josa(e.kor,'은/는')} ${reals.map(c=>ionHTML(e.sym,"",c)).join(" · ")} 처럼
+         <b>두 가지 이상의 이온</b>을 만듭니다.` : "";
+    return `<div class="note">${head}${cc > 0
+        ? `전자 <b>${cc}개를 잃어 ${chargeLabel(cc)}가 양이온</b>이 되기 쉽습니다.`
+        : `전자 <b>${-cc}개를 얻어 ${chargeLabel(cc)}가 음이온</b>이 되기 쉽습니다.`}${nbTx}${deepTx}${multi}${oct(e.cat!=="tm")}</div>`;
+  }
+  if(e && e.cat === "tm")
+    return `<div class="note">${head}전이 금속은 가장 바깥 껍질의 전자부터 잃어 <b>여러 가지 양이온</b>을 만들 수 있어,
+      옥텟 규칙만으로는 전하를 하나로 정하기 어렵습니다.${oct(false)}</div>`;
+  if(e && e.group === 14)
+    return `<div class="note">${head}전자를 4개나 잃거나 얻기는 어려워, 보통 이온이 되기보다
+      <b>전자를 서로 나누어 가지며(공유 결합)</b> 안정한 배치를 이룹니다.${oct(true)}</div>`;
+  return `<div class="note">${head}이 원소는 교과 과정에서 <b>대표 이온을 따로 다루지 않습니다</b>.
+    가장 바깥 껍질의 전자 수를 비활성 기체와 견주어 살펴보세요.${oct(true)}</div>`;
 }
 
 /* =========================================================================
@@ -3773,7 +4012,8 @@ function renderAtom(){
   atomView.opt.bigNuc = ST.bigNuc; atomView.opt.trail = ST.trail;
   atomView.opt.labels = ST.labels; atomView.opt.speed = ST.speed;
   atomView.opt.playing = ST.playing;
-  atomView.setModel({p:e.z, n:nN, e:nE, shells:e.shells, sym:e.sym});
+  atomView.setModel({p:e.z, n:nN, e:nE, shells:e.shells, sym:e.sym,
+                     refShells:e.shells.length, sizeK:1, charge:0});
   atomView.fit();
   markSelectedCell();
 }
@@ -3819,9 +4059,10 @@ atom:[
   try:[["수소 보기",1],["산소 보기",8],["철 보기",26]]},
  {id:"ms-a2", std:"[9과11-02]",
   q:"원자가 전기적으로 중성인 까닭을 양성자 수와 전자 수를 이용해 설명해 보자.",
-  guide:"오른쪽 <b>전체 전하량 계산</b> 칸에서 합계가 0이 되는 과정을 보고 문장으로 옮겨 보세요.",
-  a:`원자에는 <span class="hi">양성자 수와 전자 수가 항상 같기</span> 때문입니다.
-     양성자 1개는 +1, 전자 1개는 −1의 전하를 띠므로 모두 더하면 정확히 0이 되어 전기적으로 중성입니다.`,
+  guide:"오른쪽 <b>전체 전하량 계산</b> 칸에서 <b>‘양성자 ○개 × (+1)’</b>과 <b>‘전자 ○개 × (−1)’</b> 두 줄의 값을 각각 읽고, 그 아래 <b>전체 전하량 합계가 0</b>이 되는 과정을 문장으로 옮겨 보세요.",
+  a:`원자는 <span class="hi">양성자 수와 전자 수가 서로 같기</span> 때문입니다.
+     양성자 1개는 +1, 전자 1개는 −1의 전하를 띠므로, 개수가 같으면 두 전하의 크기가 같고 부호만 반대입니다.
+     그래서 모두 더하면 <span class="hi">총전하량이 정확히 0</span>이 되어 전기적으로 중성입니다.`,
   try:[["나트륨으로 확인",11]]},
  {id:"ms-a3", std:"[9과11-02]",
   q:"탄소 원자와 질소 원자를 구별하려면 무엇을 세어 보면 될까? 중성자 수로는 왜 구별할 수 없을까?",
@@ -3837,17 +4078,19 @@ atom:[
   try:[["리튬 보기",3],["나트륨 보기",11],["칼륨 보기",19]]},
  {id:"ms-a5", std:"[9과11-02]",
   q:"원자 모형에서 전자를 원자핵 바깥에 그리는 까닭은 무엇일까? 원자핵과 전자의 차이도 함께 써 보자.",
-  guide:"모형에서 원자핵의 크기와 전자가 도는 범위를 눈으로 비교해 보세요.",
-  a:`원자의 중심에는 (+)전하를 띤 <span class="hi">원자핵</span>이 있고, (−)전하를 띤 <span class="hi">전자</span>가 그 주위를 돌고 있기 때문입니다.
-     원자핵은 원자 질량의 대부분을 차지하지만 크기는 매우 작고, 전자는 아주 가벼우면서 원자의 넓은 공간을 차지합니다.`,
+  guide:"모형에서 <b>원자핵이 차지하는 크기</b>와 <b>전자가 움직이는 범위</b>를 눈으로 견주어 보세요.",
+  a:`실제 원자에서 (+)전하를 띤 <span class="hi">원자핵</span>은 중심의 아주 좁은 자리에만 있고,
+     (−)전하를 띤 <span class="hi">전자</span>는 그 <span class="hi">바깥의 넓은 공간을 돌아다니기</span> 때문에 모형에서도 전자를 원자핵 바깥에 그립니다.
+     또 원자핵은 크기는 매우 작지만 <span class="hi">원자 질량의 대부분</span>을 차지하고, 전자는 아주 가벼워 질량에는 거의 영향을 주지 않습니다.`,
   try:[["금 보기",79]]}
 ],
 ion:[
  {id:"ms-i1", std:"[9과11-04]",
   q:"중성인 원자가 전자를 잃으면 전체 전하는 어떻게 될까? 나트륨을 예로 들어 설명해 보자.",
   guide:"‘전자 잃기’를 눌러 보고, <b>전체 전하량 계산</b> 칸의 합계가 어떻게 바뀌는지 확인하세요.",
-  a:`전자(−)가 줄어들어 양성자의 (+)전하가 남으므로 <span class="hi">(+)전하를 띱니다</span>.
-     나트륨은 양성자 11개·전자 11개인데 전자 1개를 잃으면 전자가 10개가 되어 +1의 전하를 띤 <span class="hi">나트륨 이온(Na⁺)</span>이 됩니다.`,
+  a:`전자(−)가 줄어들면 <span class="hi">양성자 수가 전자 수보다 많아져</span> 전체적으로 <span class="hi">(+)전하를 띱니다</span>.
+     나트륨은 양성자 11개·전자 11개인데 전자 1개를 잃으면 양성자 11개·전자 10개가 되어,
+     총전하량이 +1인 <span class="hi">나트륨 이온(Na⁺)</span>이 됩니다.`,
   try:[["나트륨으로 확인","ion:11:1"]]},
  {id:"ms-i2", std:"[9과11-04]",
   q:"나트륨 원자(Na)와 나트륨 이온(Na⁺)은 같은 원소일까? 달라진 것과 달라지지 않은 것을 나누어 써 보자.",
@@ -3896,8 +4139,9 @@ atom:[
  {id:"hs-a3", std:"[10통과1-02-03]",
   q:"18족(비활성 기체) 원소가 다른 원소와 거의 반응하지 않는 까닭을 전자 배치로 설명하시오.",
   guide:"헬륨·네온·아르곤의 <b>가장 바깥 껍질의 전자 수</b>를 각각 적어 보세요.",
-  a:`18족 원소는 <span class="hi">가장 바깥 껍질이 전자로 모두 채워진 안정한 배치</span>를 이미 이루고 있기 때문입니다.
-     (He는 2개, Ne·Ar은 8개) 전자를 잃거나 얻어 더 안정해질 이유가 없으므로 화학 결합을 거의 만들지 않습니다.`,
+  a:`18족 원소는 <span class="hi">가장 바깥 껍질이 전자로 모두 채워진 안정한 전자 배치</span>를 이미 이루고 있기 때문입니다
+     (He는 2개, Ne·Ar은 8개). 전자를 잃거나 얻어 더 안정해질 이유가 없으므로 다른 원소와 화학 결합을 거의 만들지 않습니다.
+     다만 제논(Xe)처럼 무거운 18족 원소는 특별한 조건에서 화합물을 만들기도 합니다.`,
   try:[["헬륨 보기",2],["네온 보기",10],["아르곤 보기",18]]},
  {id:"hs-a4", std:"[10통과1-02-03]",
   q:"1족 원소와 17족 원소는 서로 다른 방식으로 이온이 된다. 각각 어떤 이온이 되는지, 그 까닭을 가장 바깥 껍질의 전자 수로 설명하시오.",
@@ -3933,8 +4177,8 @@ ion:[
   q:"염소 원자(Cl)와 염화 이온(Cl⁻)의 크기를 비교하고 그 까닭을 설명하시오.",
   guide:"전자를 얻어도 껍질 수가 그대로인지 확인하고, 전자 사이의 반발을 생각해 보세요.",
   a:`<span class="hi">Cl⁻이 Cl보다 큽니다</span>.
-     껍질 수는 3개로 그대로지만 전자가 1개 늘어 <span class="hi">전자끼리 밀어내는 힘</span>이 커지고,
-     전자 1개당 원자핵이 끌어당기는 힘은 상대적으로 약해지기 때문입니다.`,
+     전자를 1개 얻어도 껍질 수는 3개로 그대로지만, 양성자 수는 17개인데 전자만 18개로 늘어납니다.
+     그래서 <span class="hi">전자끼리 밀어내는 힘</span>은 커지는 반면 <span class="hi">전자 1개당 원자핵이 끌어당기는 힘</span>은 약해져 전자 구름이 더 넓게 퍼집니다.`,
   try:[["Cl⁻ 만들기","ion:17:-1"]]},
  {id:"hs-i4", std:"[10통과1-02-04]",
   q:"나트륨과 염소가 만나 염화 나트륨(NaCl)이 만들어지는 과정을 전자의 이동으로 설명하고, 이 결합의 이름을 쓰시오.",
@@ -3985,6 +4229,24 @@ function loadLocks(){
 function saveLocks(){
   try{ localStorage.setItem("atomlab-anslock", JSON.stringify(ALOCK)); }catch(e){}
 }
+/* ---- 모범 답안을 보고 다시 쓴 답안 ----
+   처음 답안(ANS)은 잠긴 채 그대로 두고, 학생은 이 칸에 새로 정리해 쓴다. (§9) */
+const REV = {};
+function loadRevs(){
+  try{
+    const raw = localStorage.getItem("atomlab-revise");
+    if(raw) Object.assign(REV, JSON.parse(raw));
+  }catch(e){}
+}
+let revTimer = null;
+function saveRevs(){
+  clearTimeout(revTimer);
+  revTimer = setTimeout(()=>{
+    try{ localStorage.setItem("atomlab-revise", JSON.stringify(REV)); }catch(e){}
+  }, 400);
+}
+const revDone = id => !!(REV[id] && REV[id].trim().length >= 5);
+
 /* ---- 힌트 열람 기록 ----
    힌트는 답안을 잠그지 않는다. 다만 교사가 볼 수 있도록 열람 여부만 남긴다. */
 const HINT = {};
@@ -4023,7 +4285,8 @@ function inqCardHTML(it, i){
           <button class="btn sm" data-hint="${it.id}" title="답안은 잠기지 않아요. 막힐 때 눌러 보세요">💡 힌트 보기</button>
           <button class="btn sm" data-model="${it.id}" ${(!locked && !ready)?"disabled":""}
             title="${locked ? "모범 답안을 다시 보거나 접습니다" : ready ? "열람하면 이 문항의 답안은 잠깁니다" : ANS_MIN+"자 이상 내 생각을 쓰면 열 수 있어요"}">📖 모범 답안 보기</button>
-          <span class="lock-tag" data-lock="${it.id}" ${locked?"":"hidden"}>🔒 모범 답안 열람 · 수정 잠김</span>
+          <span class="lock-tag" data-lock="${it.id}" ${locked?"":"hidden"}>🔒 처음 답안 잠김</span>
+          <span class="rev-tag" data-revtag="${it.id}" ${revDone(it.id)?"":"hidden"}>✏️ 다시 씀</span>
           <span class="cnt ${done?"ok":""}" data-cnt="${it.id}">${val.length}자</span>
         </div>
         <div class="inq-hint" data-hbox="${it.id}">
@@ -4033,6 +4296,12 @@ function inqCardHTML(it, i){
         <div class="model-ans" data-mbox="${it.id}"><span class="mt">모범 답안 · 이렇게 쓰면 좋아요</span>${it.a}
           <div class="try">${(it.try||[]).map(t=>`<button class="btn sm" data-go="${t[1]}">${t[0]}</button>`).join("")}</div>
         </div>
+        <div class="rev-box ${locked?"show":""}" data-rbox="${it.id}">
+          <span class="rt">✏️ 모범 답안을 보고 다시 쓰기</span>
+          <div class="rsub">처음 쓴 답안은 그대로 남습니다. 모범 답안과 견주어 빠뜨린 내용을 채워 <b>내 문장으로 다시</b> 정리해 보세요.</div>
+          <textarea class="wbox" data-rev="${it.id}" placeholder="모범 답안에서 새로 알게 된 내용을 넣어 다시 써 보세요.">${esc(REV[it.id]||"")}</textarea>
+          <div class="rmeta"><span class="rcnt ${revDone(it.id)?"ok":""}" data-rcnt="${it.id}">${(REV[it.id]||"").length}자</span></div>
+        </div>
       </div>
     </div>`;
 }
@@ -4040,11 +4309,24 @@ function inqCardHTML(it, i){
 function buildInquiries(){
   paintInq("#inqBox", "atom", "#inqLvA");
   paintInq("#inqBoxIon", "ion", "#inqLvB");
+  paintInqCount();
 }
 /* 작성 진행 수는 두 목록(원자·이온)에 함께 표시되므로 한꺼번에 갱신한다 */
 function paintInqCount(){
   const c = answeredCount(ST.level);
-  $$("[data-inqcnt]").forEach(el=>{ el.textContent = `${c.done} / ${c.total} 작성`; });
+  $$("[data-inqcnt]").forEach(el=>{
+    const t = el.dataset.inqcnt;                       /* "atom" · "ion" 이면 그 갈래만 센다 */
+    if(t === "atom" || t === "ion"){
+      const l = INQ[ST.level][t];
+      el.textContent = `${l.filter(x=>ansDone(x.id)).length} / ${l.length} 작성`;
+    }else{
+      el.textContent = `${c.done} / ${c.total} 작성`;
+    }
+  });
+  const bar = $("#inqBar");
+  if(bar) bar.style.width = (c.total ? Math.round(c.done/c.total*100) : 0) + "%";
+  const top = $("#inqLvTop");
+  if(top){ top.className = "lv-tag " + ST.level; top.textContent = ST.level==="ms" ? "중학교" : "고등학교"; }
 }
 
 /* 잠금 확인 창 — 모범 답안을 열기 전 마지막 확인 */
@@ -4069,6 +4351,8 @@ function applyLockUI(box, id){
   if(st) st.textContent = "모범 답안 열람";
   const mb = card.querySelector(`[data-model="${id}"]`);
   if(mb){ mb.disabled = false; mb.title = "모범 답안을 다시 보거나 접습니다"; }
+  const rb = card.querySelector(`[data-rbox="${id}"]`);
+  if(rb) rb.classList.add("show");
 }
 
 function paintInq(sel, topic, tagSel){
@@ -4078,8 +4362,7 @@ function paintInq(sel, topic, tagSel){
   const c = answeredCount(ST.level);
   box.innerHTML =
     `<div class="inq-topbar">
-       <span class="lv-tag ${ST.level}">${ST.level==="ms"?"중학교 수준":"고등학교 수준"}</span>
-       <span class="lead">막히면 💡힌트를 눌러 보세요. ${ANS_MIN}자 이상 쓰면 모범 답안이 열리고, <b>모범 답안을 본 문항은 더 고칠 수 없어요.</b></span>
+       <span class="lead">질문을 누르면 답을 쓰는 칸이 열립니다. 막히면 💡힌트를 눌러 보세요.</span>
        <span class="cnt" data-inqcnt style="font-size:11px;font-weight:900;color:var(--ink-3)">${c.done} / ${c.total} 작성</span>
      </div>`
     + list.map(inqCardHTML).join("");
@@ -4090,6 +4373,17 @@ function paintInq(sel, topic, tagSel){
 
 function wireInq(box){
   box.addEventListener("input", ev=>{
+    /* 다시 쓰기 칸 — 모범 답안을 본 뒤 새로 정리하는 답안 (§9) */
+    const rv = ev.target.closest("[data-rev]");
+    if(rv){
+      const rid = rv.dataset.rev;
+      REV[rid] = rv.value; saveRevs();
+      const rc = box.querySelector(`[data-rcnt="${rid}"]`);
+      if(rc){ rc.textContent = rv.value.length + "자"; rc.classList.toggle("ok", revDone(rid)); }
+      const rt = box.querySelector(`[data-revtag="${rid}"]`);
+      if(rt) rt.hidden = !revDone(rid);
+      return;
+    }
     const t = ev.target.closest("[data-ans]");
     if(!t) return;
     const id = t.dataset.ans;
@@ -4139,7 +4433,9 @@ function wireInq(box){
           applyLockUI(box, id);
           panel.classList.add("show");
           mb.textContent = "📖 모범 답안 접기";
-          toast("모범 답안을 열었어요. 이 문항의 답안은 그대로 남겨 둡니다");
+          toast("모범 답안을 열었어요. 아래 ‘다시 쓰기’ 칸에 새로 정리해 보세요");
+          const rta = box.querySelector(`[data-rev="${id}"]`);
+          if(rta) setTimeout(()=>{ rta.scrollIntoView({block:"nearest", behavior:"smooth"}); rta.focus(); }, 160);
         });
       }
       ev.stopPropagation(); return;
@@ -4147,8 +4443,9 @@ function wireInq(box){
     /* 바로가기 버튼 */
     const go = ev.target.closest("[data-go]");
     if(go){ inqGo(go.dataset.go); ev.stopPropagation(); return; }
-    /* 입력 중에는 카드가 접히지 않게 */
+    /* 입력 중에는 카드가 접히지 않게 (다시 쓰기 칸 포함) */
     if(ev.target.closest(".wbox")) return;
+    if(ev.target.closest(".rev-box")) return;
     const q = ev.target.closest(".inq-q");
     if(!q) return;
     q.parentElement.classList.toggle("open");
@@ -4445,6 +4742,18 @@ function ionNameOf(e, charge){
 /* 이온의 전자 껍질 배치
    · 양이온: 가장 바깥 껍질의 전자부터 차례로 잃는다  (Cu 2,8,18,1 → Cu²⁺ 2,8,17)
    · 음이온: 전자를 얻어 채우므로 같은 전자 수를 가진 원소의 배치를 따른다 (Cl⁻ → 2,8,8) */
+/* 전자 수만으로 껍질을 채운 배치 (K 2 · L 8 · M 18 …) — 표에 없는 전자 수를 그릴 때 쓴다 */
+const SHELL_FILL = [2,8,18,32,32,18,8];
+function fillShells(nE){
+  const out = [];
+  let rem = nE;
+  for(let i=0; i<SHELL_FILL.length && rem>0; i++){
+    const take = Math.min(rem, SHELL_FILL[i]);
+    out.push(take); rem -= take;
+  }
+  if(rem > 0) out[out.length-1] += rem;
+  return out;
+}
 function shellsForIon(e, charge){
   if(charge > 0){
     const sh = e.shells.slice();
@@ -4459,13 +4768,13 @@ function shellsForIon(e, charge){
   }
   const nE = e.z - charge;
   if(nE <= 0) return [];
-  return nE <= 118 ? EL(nE).shells.slice() : [nE];
+  return nE <= 118 ? EL(nE).shells.slice() : fillShells(nE);
 }
 
 function renderIon(){
   const e = EL(ST.ionZ);
   const charge = ST.ionDelta;
-  const nE = clamp(e.z - charge, 0, 118);
+  const nE = Math.max(0, e.z - charge);
   const shells = shellsForIon(e, charge);
   const nameNow = ionNameOf(e, charge);
 
@@ -4490,9 +4799,18 @@ function renderIon(){
   $("#i-e").textContent = nE;
   $("#i-chg").textContent = "전하 " + chargeLabel(charge);
   $("#i-cap").textContent = nameNow;
-  $("#i-capsub").textContent = charge===0
+  /* 이온이 되며 달라진 크기 — 모형에서 실제로 크기가 달라지므로 말로도 짚어 준다 */
+  const lostShell = e.shells.length - shells.length;
+  const sizeTx = (ST.level !== "hs" || charge === 0) ? ""
+    : charge > 0
+      ? (lostShell > 0
+          ? ` · 전자 껍질이 ${lostShell}개 줄어 원자보다 <b>작아짐</b>`
+          : ` · 핵이 더 세게 끌어당겨 원자보다 <b>조금 작아짐</b>`)
+      : ` · 전자끼리 밀어내는 힘이 커져 원자보다 <b>커짐</b>`;
+  $("#i-capsub").innerHTML = charge===0
     ? "전자를 잃거나 얻어 이온을 만들어 보세요"
-    : (charge>0 ? `전자 ${charge}개를 잃음 → 양이온` : `전자 ${-charge}개를 얻음 → 음이온`);
+    : (charge>0 ? `전자 ${charge}개를 잃음 → 양이온${sizeTx}`
+                : `전자 ${-charge}개를 얻음 → 음이온${sizeTx}`);
 
   $("#i-delta").textContent = charge===0 ? "0개" : (charge>0 ? `${charge}개 잃음` : `${-charge}개 얻음`);
   $("#i-charge").textContent = chargeLabel(charge);
@@ -4501,7 +4819,7 @@ function renderIon(){
   $("#i-nshell").textContent = shells.length ? shells.length + "개" : "0개";
   $("#i-valence").textContent = shells.length
     ? shells[shells.length-1] + "개 (" + SHELL_NAME(shells.length-1) + " 껍질)" : "—";
-  $("#ionOctet").innerHTML = ST.level==="hs" ? octetHTML(shells, nE, true) : "";
+  $("#ionOctet").innerHTML = ST.level==="hs" ? octetHTML(shells, nE, charge !== 0) : "";
 
   /* 이온식 표시 */
   const disp = $("#ionDisplay");
@@ -4560,7 +4878,12 @@ function renderIon(){
   ionView.opt.sign = ST.sign; ionView.opt.bigNuc = ST.bigNuc;
   ionView.opt.trail = ST.trail; ionView.opt.labels = ST.labels;
   ionView.opt.speed = ST.speed; ionView.opt.playing = ST.playing;
-  ionView.setModel({p:e.z, n:e.n, e:nE, shells, sym:e.sym});
+  /* 이온의 크기 — 껍질이 줄면 저절로 작아지고, 껍질 수가 같아도
+     양이온은 조금 더 작게 · 음이온은 조금 더 크게 그린다 */
+  const sizeK = charge > 0 ? Math.max(0.84, 1 - 0.05*charge)
+              : charge < 0 ? Math.min(1.10, 1 + 0.05*(-charge)) : 1;
+  ionView.setModel({p:e.z, n:e.n, e:nE, shells, sym:e.sym,
+                    refShells:e.shells.length, sizeK, charge});
   ionView.fit();
   markSelectedCell();
 }
@@ -5132,7 +5455,9 @@ function renderObs(){
   }
 
   seeElement(e.z);
-  const sameG = ELEMENTS.filter(x=>x.group===e.group && x.period!==e.period && x.group!==0).slice(0,8);
+  const sameG = e.group === 0
+    ? ELEMENTS.filter(x=>x.cat===e.cat && x.z!==e.z).slice(0,8)          /* 란타넘족·악티늄족 */
+    : ELEMENTS.filter(x=>x.group===e.group && x.z!==e.z).slice(0,8);
   const sameP = ELEMENTS.filter(x=>x.period===e.period && x.z!==e.z).slice(0,10);
   const chipRow = (arr)=> arr.length ? arr.map(x=>`<button class="btn sm" data-oz="${x.z}" style="border-color:${x.color}">
       <b style="color:${x.color}">${x.sym}</b> ${x.kor}</button>`).join("") : `<span style="font-size:12px;color:var(--ink-3);font-weight:700">해당 없음</span>`;
@@ -5508,7 +5833,10 @@ function renderQuiz(){
     QZ.view = new AtomView($("#qAtomBox"));
     QZ.view.opt.mode = "shell"; QZ.view.opt.labels = false;
     QZ.view.opt.playing = ST.playing; QZ.view.opt.speed = ST.speed;
-    QZ.view.setModel({p:e.z, n:e.n, e:nE, shells:shellsForIon(e, ion.c), sym:e.sym});
+    QZ.view.setModel({p:e.z, n:e.n, e:nE, shells:shellsForIon(e, ion.c), sym:e.sym,
+                      refShells:e.shells.length,
+                      sizeK: ion.c>0 ? Math.max(0.84, 1-0.05*ion.c) : Math.min(1.10, 1+0.05*(-ion.c)),
+                      charge: ion.c});
     QZ.view.S = 190; QZ.view.build();
     bindOpts(card, explainIon(ion));
     startTimer();
@@ -6679,24 +7007,28 @@ function repInquiry(){
   groups.forEach(([title, list])=>{
     out += `<div style="font-size:10.5pt;font-weight:900;margin:13px 0 7px;color:#2f7fe0">${esc(title)}</div>`;
     out += list.map((it,i)=>{
-      const val = (ANS[it.id] || "").trim();
+      const val = (ANS[it.id] || "").trim(), rev = (REV[it.id] || "").trim();
       const seen = !!ALOCK[it.id];
       const hinted = !!HINT[it.id];
       const seenTx = REP_OPT.blank ? ""
         : (seen
             ? ` · <span style="color:#7b5ec7;font-weight:900">모범 답안 열람함${val?"":" (답안 미작성)"}</span>`
             : (val ? ` · <span style="color:#16a06a;font-weight:900">열람 전 스스로 작성</span>` : ""))
-          + (hinted ? ` · <span style="color:#c77a10;font-weight:900">힌트 봄</span>` : "");
+          + (hinted ? ` · <span style="color:#c77a10;font-weight:900">힌트 봄</span>` : "")
+          + ((!REP_OPT.blank && rev) ? ` · <span style="color:#2f7fe0;font-weight:900">모범 답안 보고 다시 씀</span>` : "");
       const body = REP_OPT.blank
         ? `<div class="ans empty" style="min-height:74px">　</div>`
-        : `<div class="lbl2">내가 쓴 답</div>
+        : `<div class="lbl2">${rev ? "처음 쓴 답" : "내가 쓴 답"}</div>
            <div class="ans ${val?"":"empty"}">${val ? esc(val) : "아직 작성하지 않았습니다."}</div>`;
       const model = (REP_OPT.model && !REP_OPT.blank)
         ? `<div class="mdl"><b>모범 답안</b> — ${stripTags(it.a)}</div>` : "";
+      const revised = REP_OPT.blank
+        ? `<div class="lbl2">모범 답안을 보고 다시 쓴 답</div><div class="ans empty" style="min-height:52px">　</div>`
+        : (rev ? `<div class="lbl2">모범 답안을 보고 다시 쓴 답</div><div class="ans">${esc(rev)}</div>` : "");
       return `<div class="rep-item">
         <div class="qh"><span class="n">${i+1}</span><span>${esc(it.q)}</span></div>
         <div class="std">${esc(it.std)}${seenTx}</div>
-        ${body}${model}
+        ${body}${model}${revised}
       </div>`;
     }).join("");
   });
@@ -7154,6 +7486,7 @@ function switchView(v){
   if(v==="ion"){  renderIon();  requestAnimationFrame(()=>ionView && ionView.fit()); }
   if(v==="obs")  renderObs();
   if(v==="dict") renderDict();
+  if(v==="inq") paintInqCount();
   if(v==="quiz" && !QZ.list.length) startQuiz();
   if(v==="game"){
     gmPaintSetup();
@@ -7186,6 +7519,15 @@ function applyOptsToViews(){
 function wire(){
   /* 모드 탭 */
   $$(".mode-btn").forEach(b=> b.onclick = ()=>switchView(b.dataset.view));
+
+  /* 원자·이온 화면 → 탐구 질문 화면 바로가기 */
+  $$("[data-inqgo]").forEach(b=> b.onclick = ()=>{
+    switchView("inq");
+    const box = b.dataset.inqgo === "2" ? $("#inqBoxIon") : $("#inqBox");
+    if(box) requestAnimationFrame(()=>box.scrollIntoView({block:"nearest", behavior:"smooth"}));
+  });
+  /* 탐구 질문 화면 → 해당 실습 화면으로 되돌아가기 */
+  $$("[data-inqback]").forEach(b=> b.onclick = ()=>switchView(b.dataset.inqback));
 
   /* 탭 줄이 넘칠 때 가장자리 흐림 — 더 있다는 것을 알린다 */
   const nav = $("nav.modes");
@@ -7333,9 +7675,9 @@ function wire(){
 
   /* 모든 데이터 초기화 — 서술형 잠금을 푸는 유일한 방법 */
   $("#btnWipe").onclick = ()=>{
-    if(!confirm("서술형 답안과 모범 답안 잠금, 힌트·퀴즈·게임 기록, 화면 설정이 모두 지워져요.\n정말 초기화할까요?")) return;
+    if(!confirm("서술형 답안·다시 쓴 답안과 모범 답안 잠금, 힌트·퀴즈·게임 기록, 화면 설정이 모두 지워져요.\n정말 초기화할까요?")) return;
     try{
-      ["atomlab-student","atomlab-answers","atomlab-anslock","atomlab-anshint","atomlab-game",
+      ["atomlab-student","atomlab-answers","atomlab-revise","atomlab-anslock","atomlab-anshint","atomlab-game",
        "atomlab-level","atomlab-mislv","atomlab-sfx","atomlab-vol","atomlab-theme"]
         .forEach(k=>localStorage.removeItem(k));
     }catch(e){}
@@ -7626,6 +7968,7 @@ function wire(){
       case "4": switchView("dict"); break;
       case "5": switchView("quiz"); break;
       case "6": switchView("game"); break;
+      case "7": switchView("inq"); break;
       case "p": case "P": case "ㅔ":
         openPick(ST.view==="ion"?"ion":ST.view==="obs"?"obs":"atom"); break;
       case "n": case "N": case "ㅜ": $("#btnNuc").click(); break;
@@ -7662,6 +8005,7 @@ function init(){
   loadMisLv();
   loadStudent();
   loadAnswers();
+  loadRevs();
   loadLocks();
   loadHints();
   document.documentElement.dataset.level = ST.level;
