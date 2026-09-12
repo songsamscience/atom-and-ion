@@ -796,6 +796,22 @@ html[data-theme="dark"] .obs-hero{background:linear-gradient(180deg,#1a2839,#142
 .typing.correct{border-color:var(--ok);background:var(--ok-soft)}
 .typing.wrong{border-color:var(--bad);background:var(--bad-soft)}
 
+/* ===================== 이온 이름 — ‘(   ) 이온’ 괄호 채우기 ===================== */
+.nm-line{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.nm-line .par{font-family:var(--serif);font-size:38px;line-height:1;color:var(--ink-3);font-weight:400}
+.nm-line .ion-w{font-size:21px;font-weight:900;letter-spacing:-.02em;white-space:nowrap}
+.typing.nm-in{width:min(12em,56vw);text-align:center;font-size:20px;padding:12px 10px}
+.typing.nm-in:disabled{opacity:1;-webkit-text-fill-color:var(--ink)}
+.nm-card .q-text{text-align:center}
+.nm-card .live-hint{text-align:center}
+.nm-hint{margin-top:12px}
+.nm-row{display:block;font-size:14.5px;font-weight:900;margin:2px 0 6px}
+.nm-sub{display:block;margin-top:6px;font-weight:600;opacity:.92}
+.nm-list .fact .ic.o{background:var(--ok-soft);color:var(--ok)}
+.nm-list .fact .ic.x{background:var(--bad-soft);color:var(--bad)}
+.nm-list .fact .ion-formula{font-size:1.45em;vertical-align:-.08em;margin-right:6px}
+.nm-list .fact .tag-h{font-size:10.5px;font-weight:800;color:var(--warn);margin-left:6px;white-space:nowrap}
+
 /* 탐구 질문 카드 */
 .inq{border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden;background:var(--panel)}
 .inq + .inq{margin-top:9px}
@@ -1678,6 +1694,13 @@ html[data-theme="dark"]{ --focus:rgba(95,168,255,.5); --press:rgba(255,255,255,.
   opacity:.55;cursor:not-allowed;background:var(--panel-2);color:var(--ink-3);border-style:dashed;
 }
 .typing.correct,.typing.wrong{box-shadow:none}
+/* 채점이 끝나 잠긴 입력칸도 맞음·틀림 색은 그대로 보여 준다 (위의 :disabled 규칙이 덮어쓰지 않게) */
+.typing.correct:disabled,.typing.wrong:disabled{opacity:1;border-style:solid;color:var(--ink);-webkit-text-fill-color:var(--ink)}
+.typing.correct:disabled{border-color:var(--ok);background:var(--ok-soft)}
+.typing.wrong:disabled{border-color:var(--bad);background:var(--bad-soft)}
+/* 어두운 화면(기본 테마)에서 채점 설명 글자가 배경에 묻히지 않게 */
+html[data-theme="dark"] .q-feedback.ok{color:#9be8c6;border-color:#1f5a44}
+html[data-theme="dark"] .q-feedback.no{color:#ffb4ad;border-color:#6b3434}
 
 /* 입력 필드에 붙는 도움말·오류 문구 */
 .field .msg{font-size:11.5px;font-weight:700;color:var(--ink-3);line-height:1.45}
@@ -1972,8 +1995,9 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
 
   <nav class="modes" role="tablist" aria-label="실험 모드">
     <button class="mode-btn" role="tab" aria-selected="true" data-view="atom"><span class="ico">⚛</span>원자 모형</button>
-    <button class="mode-btn" role="tab" aria-selected="false" data-view="ion"><span class="ico">⚡</span>이온 만들기</button>
     <button class="mode-btn" role="tab" aria-selected="false" data-view="obs"><span class="ico">🔍</span>원소 기호 관찰</button>
+    <button class="mode-btn" role="tab" aria-selected="false" data-view="ion"><span class="ico">⚡</span>이온 만들기</button>
+    <button class="mode-btn" role="tab" aria-selected="false" data-view="name"><span class="ico">🏷️</span>이온 이름</button>
     <button class="mode-btn" role="tab" aria-selected="false" data-view="dict"><span class="ico">📖</span>이온 사전</button>
     <button class="mode-btn" role="tab" aria-selected="false" data-view="quiz"><span class="ico">✏️</span>이온 명명법 연습</button>
     <button class="mode-btn" role="tab" aria-selected="false" data-view="game"><span class="ico">🎮</span>이온 명명법 게임</button>
@@ -2258,7 +2282,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
  </div>
 </section>
 
-<!-- ============ 2. 이온 만들기 ============ -->
+<!-- ============ 3. 이온 만들기 ============ -->
 <section class="view exp" id="view-ion">
  <div class="split">
   <div class="stage-col">
@@ -2453,7 +2477,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
  </div>
 </section>
 
-<!-- ============ 3. 원소 기호 관찰 ============ -->
+<!-- ============ 2. 원소 기호 관찰 ============ -->
 <section class="view" id="view-obs">
   <div class="obs-wrap">
     <div class="obs-hero">
@@ -2516,7 +2540,38 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
   </div>
 </section>
 
-<!-- ============ 4. 이온 사전 ============ -->
+<!-- ============ 4. 이온 이름 — ‘(   ) 이온’ 괄호 채우기 ============ -->
+<section class="view" id="view-name">
+  <div class="quiz-wrap">
+    <div class="card">
+      <div class="card-b tight">
+        <div class="quiz-head">
+          <div class="seg" id="nmRange" style="flex:1 1 210px" role="group" aria-label="연습할 이온의 종류">
+            <button aria-pressed="false" data-nr="cat">양이온</button>
+            <button aria-pressed="false" data-nr="an">음이온</button>
+            <button aria-pressed="true" data-nr="all">모두</button>
+          </div>
+          <div class="seg" id="nmSet" style="flex:1 1 210px" role="group" aria-label="이온 목록">
+            <button aria-pressed="true" data-ns="book">교과서 이온</button>
+            <button aria-pressed="false" data-ns="all">추가 이온까지</button>
+          </div>
+          <span class="score-pill" id="nmScore">⭐ 0 / 0</span>
+          <button class="btn sm" id="nmRules" title="이론 학습 ‘이온의 이름 붙이기’ 카드 열기">📖 이름 붙이는 규칙</button>
+        </div>
+        <div class="progress" style="margin-top:10px"><i id="nmProg" style="width:0%"></i></div>
+      </div>
+    </div>
+
+    <div class="q-card nm-card" id="nmCard"></div>
+
+    <div class="card" id="nmSummary" style="display:none">
+      <div class="card-h"><h3>이번 판 채점표</h3><span class="hint">틀린 이온은 규칙을 다시 보고 한 번 더</span></div>
+      <div class="card-b tight nm-list" id="nmList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. 이온 사전 ============ -->
 <section class="view" id="view-dict">
   <div class="split">
     <div class="stage-col" style="min-height:auto">
@@ -2578,7 +2633,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
   </div>
 </section>
 
-<!-- ============ 5. 이온 명명법 연습 ============ -->
+<!-- ============ 6. 이온 명명법 연습 ============ -->
 <section class="view" id="view-quiz">
   <div class="quiz-wrap">
     <div class="card">
@@ -2628,7 +2683,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
   </div>
 </section>
 
-<!-- ============ 6. 이온 명명법 게임 ============ -->
+<!-- ============ 7. 이온 명명법 게임 ============ -->
 <section class="view" id="view-game">
   <div class="game-wrap">
 
@@ -2725,7 +2780,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
   </div>
 </section>
 
-<!-- ============ 7. 탐구 질문 (서술형) ============ -->
+<!-- ============ 8. 탐구 질문 (서술형) ============ -->
 <section class="view" id="view-inq">
   <div class="inq-wrap">
 
@@ -2820,14 +2875,17 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
         <div class="help-item"><div class="no">4</div><div class="tx"><b>원자핵으로 전환</b> — 무대의 ⚛ 버튼(또는 <b>N</b>)을 누르면 양성자·중성자 대신 원자핵을 하나의 구로 나타내고, 원자핵의 총 전하 <b>+x</b>를 보여 줍니다.</div></div>
         <div class="help-item"><div class="no">5</div><div class="tx"><b>동위원소</b> — 중성자 수는 <b>실제로 존재하는 동위원소</b>로만 바꿀 수 있습니다. ⭐ 표시가 자연에 가장 많은 동위원소입니다.</div></div>
         <div class="help-item"><div class="no">6</div><div class="tx"><b>전체 전하량 계산</b> — 양성자 총 전하량과 전자 총 전하량을 더해 중성인지 확인합니다. 상대 전하(+1/−1)와 실제 전하량(C) 중에서 고를 수 있습니다.</div></div>
-        <div class="help-item"><div class="no">7</div><div class="tx"><b>이온 만들기</b> — 전자를 잃거나 얻으면 이온식과 이름이 자동으로 만들어집니다. <b>↑ ↓</b> 방향키로도 조작합니다.</div></div>
-        <div class="help-item"><div class="no">8</div><div class="tx"><b>원소 기호 관찰</b> — 원소 기호를 크게 확대해 보고, ᴬ<sub>Z</sub>X 표기의 각 자리가 무엇을 뜻하는지 확인합니다.</div></div>
-        <div class="help-item"><div class="no">9</div><div class="tx"><b>이온 명명법 연습</b> — 이온식 ↔ 이름, 모형 → 이온식 문제를 풀며 규칙을 익힙니다.</div></div>
-        <div class="help-item"><div class="no">10</div><div class="tx"><b>이온 명명법 게임</b> — 1·2·3분 동안 이온식을 보고 <b>이름 4개 중 하나</b>를 고르는 속도 게임입니다.
+        <div class="help-item"><div class="no">7</div><div class="tx"><b>원소 기호 관찰</b> — 원소 기호를 크게 확대해 보고, ᴬ<sub>Z</sub>X 표기의 각 자리가 무엇을 뜻하는지 확인합니다.</div></div>
+        <div class="help-item"><div class="no">8</div><div class="tx"><b>이온 만들기</b> — 전자를 잃거나 얻으면 이온식과 이름이 자동으로 만들어집니다. <b>↑ ↓</b> 방향키로도 조작합니다.</div></div>
+        <div class="help-item"><div class="no">9</div><div class="tx"><b>이온 이름</b> — 이온식을 보고 <b>‘(   ) 이온’</b>의 괄호 안에 알맞은 말을 써 넣으며 이름 붙이는 규칙을 익힙니다.
+          양이온 · 음이온 · 모두, 교과서 이온 · 추가 이온까지 중에서 골라 한 판에 10문제씩 풀고, 틀리면 무엇이 달랐는지 바로 알려 줍니다.
+          띄어쓰기와 ‘이온’까지 쓴 답도 맞게 보며, 결과는 학습 리포트에 함께 실립니다.</div></div>
+        <div class="help-item"><div class="no">10</div><div class="tx"><b>이온 명명법 연습</b> — 이온식 ↔ 이름, 모형 → 이온식 문제를 풀며 규칙을 익힙니다.</div></div>
+        <div class="help-item"><div class="no">11</div><div class="tx"><b>이온 명명법 게임</b> — 1·2·3분 동안 이온식을 보고 <b>이름 4개 중 하나</b>를 고르는 속도 게임입니다.
           <b>양이온 · 음이온 · 혼합</b> 모드를 고를 수 있고, 연속 정답 <b>콤보</b>와 <b>속도 보너스</b>로 점수가 크게 올라갑니다.
           틀리면 <b>한 번 더</b> 기회를 주고, 💡<b>힌트</b>(보기 하나 지우기)와 ⏭<b>넘어가기</b>를 쓸 수 있습니다.
           끝나면 <b>S+ ~ D 등급</b>과 업적, 오답 노트가 나오고 <b>결과를 이미지로 저장</b>하거나 <b>오답 학습지(PDF)</b>로 인쇄할 수 있습니다.</div></div>
-        <div class="help-item"><div class="no">11</div><div class="tx"><b>전체화면</b> — 오른쪽 위 ⛶ 버튼 또는 <b>F</b> 키. 수업 화면에 띄울 때 사용하세요. (나가기: <b>Esc</b>)</div></div>
+        <div class="help-item"><div class="no">12</div><div class="tx"><b>전체화면</b> — 오른쪽 위 ⛶ 버튼 또는 <b>F</b> 키. 수업 화면에 띄울 때 사용하세요. (나가기: <b>Esc</b>)</div></div>
       </div>
 
       <div class="help-list" style="margin-top:4px">
@@ -2836,7 +2894,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
           고등학교는 <b>동위원소·전자 배치·옥텟 규칙·이온의 크기</b>까지 함께 봅니다. 탐구 질문과 연습 문항도 함께 바뀝니다.</div></div>
         <div class="help-item"><div class="no">★</div><div class="tx"><b>학번·이름</b> — 오른쪽 위 <b>🎓 이름 입력</b> 칩을 누르면 열리는 칸에 학년·반·번호와 이름을 적습니다. 리포트·PDF·모형 이미지·게임 결과를 저장하면 학번·이름·날짜가 <b>산출물 안에 함께 인쇄</b>됩니다.
           <b>입력한 학번·이름은 이 기기에 저장되지 않습니다</b> — 화면을 새로 고치거나 닫으면 지워지므로, 여러 학생이 같은 컴퓨터를 써도 앞 사람 이름이 남지 않습니다. 저장 전에 이름이 비어 있으면 이 칸이 저절로 열리며 깜박여 알려 줍니다.</div></div>
-        <div class="help-item"><div class="no">★</div><div class="tx"><b>탐구 질문 서술형</b> — 상단 탭 맨 오른쪽 <b>📝 탐구 질문</b>(<b>7</b> 키)에서 원자·이온 문항을 한 화면에 모아 풉니다. 탭에 붙은 <b>작성 수 배지</b>로 진행 상황이 바로 보입니다.
+        <div class="help-item"><div class="no">★</div><div class="tx"><b>탐구 질문 서술형</b> — 상단 탭 맨 오른쪽 <b>📝 탐구 질문</b>(<b>8</b> 키)에서 원자·이온 문항을 한 화면에 모아 풉니다. 탭에 붙은 <b>작성 수 배지</b>로 진행 상황이 바로 보입니다.
           질문을 누르면 답을 쓰는 칸이 열리고 자동 저장되며, <b>20자 이상</b> 쓰면 모범 답안을 열 수 있습니다.
           <b>모범 답안을 열람한 문항은 처음 답안을 더 고칠 수 없지만</b> 🔒, 모범 답안 아래에 <b>✏️ 다시 쓰기 칸</b>이 열립니다.
           모범 답안과 견주어 새로 정리한 답안을 여기에 쓰면, 리포트에 <b>처음 답안 · 모범 답안 · 다시 쓴 답안</b>이 나란히 인쇄됩니다.
@@ -2876,7 +2934,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
         <span>⚠ 무단 복제·상업적 이용 금지</span>
       </div>
       <div class="note" style="margin-top:12px">
-        <b>단축키</b> — Space: 전자 재생/정지 · ← →: 이전/다음 원소 · ↑ ↓: 전자 얻기/잃기 · 1~7: 모드 전환 · P: 주기율표 · N: 원자핵 전환 · M: 학교급 전환 · T: 이론 · R: 학습 리포트 · B: 업적 · F: 전체화면 · D: 밝게/어둡게 · H: 도움말 · Esc: 창 닫기
+        <b>단축키</b> — Space: 전자 재생/정지 · ← →: 이전/다음 원소 · ↑ ↓: 전자 얻기/잃기 · 1~8: 모드 전환 · P: 주기율표 · N: 원자핵 전환 · M: 학교급 전환 · T: 이론 · R: 학습 리포트 · B: 업적 · F: 전체화면 · D: 밝게/어둡게 · H: 도움말 · Esc: 창 닫기
         <br><b>게임 중</b> — 1 2 3 4: 답 고르기 · Enter: 넘어가기 · / : 힌트 · Space: 잠시 멈춤
       </div>
       <div class="btn-row" style="margin-top:12px;justify-content:space-between;align-items:center">
@@ -2950,6 +3008,7 @@ html[data-theme="dark"] .th-def{color:#9ecbff}
       <div class="chk-row">
         <label class="chk"><input type="checkbox" id="ckInq" checked><span>탐구 질문 서술형 답안</span></label>
         <label class="chk"><input type="checkbox" id="ckModel" checked><span>모범 답안 함께 인쇄</span></label>
+        <label class="chk"><input type="checkbox" id="ckName" checked><span>이온 이름 결과 · 괄호 채우기 학습지</span></label>
         <label class="chk"><input type="checkbox" id="ckQuiz" checked><span>이온 명명법 연습 결과</span></label>
         <label class="chk"><input type="checkbox" id="ckWrong" checked><span>오답 노트와 해설</span></label>
         <label class="chk"><input type="checkbox" id="ckGame" checked><span>이온 명명법 게임 결과 · 오답 학습지</span></label>
@@ -3854,6 +3913,7 @@ function setLevel(lv, quiet){
   if(ST.view==="ion")  renderIon();
   if(ST.view==="dict") renderDict();
   if(ST.view==="obs")  renderObs();
+  if(ST.view==="name") renderName();
   /* 이미 끝낸 연습 결과는 리포트에 써야 하므로 지우지 않는다 */
   if(!QZ.done){
     if(ST.view==="quiz") startQuiz(); else QZ.list = [];
@@ -4786,7 +4846,7 @@ const THEORY = [
   desc:`음이온은 원소 이름이 <b>‘소’로 끝나면 ‘소’를 떼고</b> ‘화 이온’을 붙여요 — 염소 → 염화 이온, 산소 → 산화 이온.
         NH₄⁺(암모늄 이온)처럼 여러 원자가 뭉친 <b>다원자 이온</b>은 고유한 이름을 그대로 써요.`,
   link:"이온 명명법 게임의 채점 규칙이 바로 이 두 줄이에요.",
-  try:[["📖 이온 사전 열기","dict"],["🎮 게임으로 연습","game"]]
+  try:[["🏷️ 이온 이름 연습","name"],["📖 이온 사전 열기","dict"],["🎮 게임으로 연습","game"]]
 },
 {
   t:"안정한 전자 배치 (심화)",
@@ -6388,6 +6448,233 @@ function renderQuizEnd(){
 
 
 /* =========================================================================
+   이온 이름 — 이온식을 보고 ‘(   ) 이온’의 괄호를 한글로 채운다
+   · 이온 목록은 위 IONS(교과서 수록 18종 + 자주 쓰는 추가 이온 8종)를 그대로 쓴다
+   · 이름에서 ‘ 이온’을 뗀 부분이 괄호에 들어갈 답이다 — 나트륨 / 염화 / 황산
+   · 기록은 명명법 연습과 같이 이 화면이 열려 있는 동안만 메모리에 둔다
+   ========================================================================= */
+const NM_ROUND = 10;
+const NM = { range:"all", set:null, q:[], i:0, a:{}, h:{}, done:false, retry:false,
+             streak:0, last:{}, rounds:0, hints:0, endFx:false };
+const nmKey  = i => i.b + (i.s || "");                 /* Na · NH4 · MnO4 */
+const nmBase = i => i.nm.replace(/\s*이온$/, "");      /* 괄호에 들어갈 말 */
+const nmKor  = i => i.el ? BY_SYM[i.el].kor : "";
+/* 교과서 표기가 아닌 이름 — 맞게 보되 교과서 표기를 알려 준다 */
+const NM_OLD = b => `요즘 교과서에서는 ‘${b} 이온’이라고 써요.`;
+const NM_ROMAN = b => {
+  const n = `(Ⅱ)는 전하가 2+임을 밝히는 이름이에요. 이 목록에서는 ‘${b} 이온’으로 써요.`;
+  return {[b+"Ⅱ"]:n, [b+"II"]:n, [b+"2"]:n};
+};
+const NM_ALT = {
+  Na:{"소듐":"교과서에서는 ‘나트륨 이온’이라고 써요."},
+  K: {"포타슘":"교과서에서는 ‘칼륨 이온’이라고 써요."},
+  F: {"플루오르화":NM_OLD("플루오린화")},
+  Br:{"브롬화":NM_OLD("브로민화")},
+  I: {"요오드화":NM_OLD("아이오딘화")},
+  MnO4:{"과망간산":NM_OLD("과망가니즈산")},
+  Cu:NM_ROMAN("구리"), Fe:NM_ROMAN("철"), Pb:NM_ROMAN("납")
+};
+/* 띄어쓰기·괄호를 지우고, ‘염화 이온’처럼 ‘이온’까지 쓴 답도 받는다 */
+const nmNorm = v => String(v || "").normalize("NFC").replace(/[\s()（）[\]{}·.,]/g, "").replace(/이온$/, "");
+/* 화면 낭독기용 — 답(이름)은 알려 주지 않고 기호와 전하만 읽는다. 'SO4, 전하 2−' */
+const nmSpeak = i => `${i.b}${i.s||""}, 전하 ${Math.abs(i.c)}${i.c>0?"+":"−"}`;
+
+/* 이 이온에 해당하는 규칙 한 줄 — 이온식은 ionHTML 로 첨자까지 그린다 */
+function nmRule(i){
+  const f = ionOf(i), b = esc(i.nm);
+  if(i.poly){
+    const c = BY_SYM[i.ctr], o = BY_SYM[i.out];
+    return `여러 원자가 결합한 <b>다원자 이온</b>은 정해진 이름을 그대로 써요 — ${f} <b>${b}</b>.`
+      + (c && o ? ` ${c.kor} 1개와 ${o.kor} ${i.nOut}개가 결합한 덩어리 전체가 ${i.c>0?"(+)":"(−)"}전하를 띠어요.` : "");
+  }
+  const k = esc(nmKor(i));
+  if(i.c > 0) return `양이온은 원소 이름 뒤에 <b>‘이온’</b>만 붙여요 — ${k} → ${f} <b>${b}</b>.`;
+  if(nmKor(i).endsWith("소")) return `원소 이름이 <b>‘소’로 끝나면 ‘소’를 떼고</b> ‘화 이온’을 붙여요 — ${k} → ${f} <b>${b}</b>.`;
+  return `음이온은 원소 이름 뒤에 <b>‘화 이온’</b>을 붙여요 — ${k} → ${f} <b>${b}</b>.`;
+}
+/* 채점 — {ok, note(맞았지만 알려 줄 말) | why(무엇이 달랐는지)} */
+function nmJudge(ion, raw){
+  const v = nmNorm(raw), base = nmBase(ion), k = nmKor(ion);
+  if(v === base) return {ok:true};
+  const alt = NM_ALT[nmKey(ion)];
+  if(alt && alt[v]) return {ok:true, note:alt[v]};
+  const other = IONS.find(o=>o !== ion && nmBase(o) === v);
+  let why = "";
+  if(!ion.poly && ion.c > 0 && v === k + "화") why = "양이온에는 ‘화’를 붙이지 않아요.";
+  else if(!ion.poly && ion.c < 0 && v === k) why = `‘${esc(k)}’${josa(k,"은/는")} 원소 이름이에요.`;
+  else if(!ion.poly && ion.c < 0 && k.endsWith("소") && v === k + "화") why = "‘소’를 떼지 않았어요.";
+  else if(ion.poly && v === base + "화") why = "다원자 이온 이름에는 ‘화’를 덧붙이지 않아요.";
+  else if(nmKey(ion) === "NH4" && v === "암모니아") why = `암모니아 ${ionHTML("NH","3",0)}는 이온이 아니라 분자예요.`;
+  else if(other) why = `‘${esc(other.nm)}’은 ${ionOf(other)}의 이름이에요.`;
+  return {ok:false, why};
+}
+function nmHintText(ion){
+  if(ion.poly){
+    const f = nmBase(ion).charAt(0);
+    return `여러 원자가 결합한 다원자 이온이라 정해진 이름을 써요. 이름의 첫 글자는 ‘${f}’${josa(f,"이에요/예요")}.`;
+  }
+  const e = BY_SYM[ion.el];
+  return `원소 기호 ${esc(e.sym)}의 원소 이름은 ‘${esc(e.kor)}’${josa(e.kor,"이에요/예요")}. `
+    + `이온식 오른쪽 위의 부호가 +이면 양이온, −이면 음이온이에요.`;
+}
+function nmPool(range, set){
+  return IONS.filter(i=>(range==="all" || (range==="cat" ? i.c>0 : i.c<0)) && (set==="all" || i.src==="tb"));
+}
+/* 새 판 — ‘모두’는 양이온·음이온을 반반 섞는다. list 를 주면 그 이온만 (틀린 이온 다시) */
+function nmNewRound(list){
+  if(!NM.set) NM.set = ST.level==="hs" ? "all" : "book";
+  let q;
+  if(list) q = shuffle(list);
+  else if(NM.range==="all"){
+    const n = NM_ROUND/2;
+    q = shuffle(shuffle(nmPool("cat", NM.set)).slice(0,n).concat(shuffle(nmPool("an", NM.set)).slice(0,n)));
+  } else q = shuffle(nmPool(NM.range, NM.set)).slice(0, NM_ROUND);
+  Object.assign(NM, {q, i:0, a:{}, h:{}, done:false, retry:!!list, streak:0, endFx:false});
+}
+function paintNmHead(){
+  $$("#nmRange button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.nr===NM.range)));
+  $$("#nmSet button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.ns===NM.set)));
+  const n = NM.q.length, done = Object.keys(NM.a).length;
+  $("#nmScore").textContent = `⭐ ${Object.values(NM.a).filter(x=>x.ok).length} / ${done}`;
+  $("#nmProg").style.width = (n ? done/n*100 : 0) + "%";
+}
+
+let nmGuard = 0, nmPend = false;
+function renderName(){
+  if(!NM.q.length) nmNewRound();
+  paintNmHead();
+  nmPend = false;
+  if(NM.done){ renderNameEnd(); return; }
+  $("#nmSummary").style.display = "none";
+  const n = NM.q.length, i = NM.i, ion = NM.q[i], ans = NM.a[i];
+  const from = NM.retry ? `틀린 이온 ${n}개 다시`
+    : `${NM.set==="all" ? "추가 이온까지" : "교과서 이온"} ${nmPool(NM.range, NM.set).length}종 가운데 ${n}개`;
+  $("#nmCard").innerHTML = `
+    <div class="q-kind">🏷️ 괄호 채우기 · ${i+1} / ${n}</div>
+    <div class="q-text">이온식을 보고 괄호 안에 알맞은 말을 써 넣으세요.</div>
+    <div class="q-sub" style="text-align:center">${from}</div>
+    <div class="q-visual" role="img" aria-label="이온식 ${esc(nmSpeak(ion))}">${ionOf(ion)}</div>
+    <div class="nm-line">
+      <span class="par" aria-hidden="true">(</span>
+      <input class="typing nm-in${ans ? (ans.ok ? " correct" : " wrong") : ""}" id="nmIn" autocomplete="off" autocapitalize="off"
+        spellcheck="false" lang="ko" enterkeyhint="done" aria-label="‘이온’ 앞 괄호 안에 들어갈 말"${ans ? ` disabled value="${esc(ans.raw)}"` : ""}>
+      <span class="par" aria-hidden="true">)</span><span class="ion-w">이온</span>
+    </div>
+    ${ans ? "" : `<div class="live-hint">띄어쓰기는 채점하지 않아요. ‘염화 이온’처럼 ‘이온’까지 써도 괜찮아요.</div>`}
+    ${!ans && NM.h[i] ? `<div class="note nm-hint"><b>💡 힌트</b> — ${nmHintText(ion)}</div>` : ""}
+    ${ans ? "" : `<div class="btn-row" style="margin-top:12px;justify-content:center">
+        <button class="btn ghost" id="nmHintBtn"${NM.h[i] ? " disabled" : ""}>💡 힌트 보기</button>
+        <button class="btn primary" id="nmSubmit">확인</button></div>`}
+    <div class="q-feedback${ans ? " show " + (ans.ok ? "ok" : "no") : ""}" id="nmFb">${ans ? nmFeedback(ion, ans) : ""}</div>`;
+  bindName();
+}
+function nmFeedback(ion, a){
+  const last = NM.i >= NM.q.length - 1;
+  const head = a.ok
+    ? `<b>⭕ 맞았어요${NM.streak >= 3 ? ` — ${NM.streak}연속!` : ""}</b><span class="nm-row">${ionOf(ion)} ${esc(ion.nm)}</span>`
+      + (a.note ? `<span class="nm-sub">${esc(a.note)}</span>` : "")
+    : `<b>❌ 다시 살펴볼까요?</b><span class="nm-row">내 답 (${esc(a.raw)}) 이온 → 정답 (${esc(nmBase(ion))}) 이온</span>`
+      + (a.why ? `<span class="nm-sub">${a.why}</span>` : "");
+  const fe = nmKey(ion)==="Fe" ? `<span class="nm-sub">철은 ${ionHTML("Fe","",2)} · ${ionHTML("Fe","",3)} 두 가지 이온을 만들어요.</span>` : "";
+  return head + `<span class="nm-sub">${nmRule(ion)}</span>` + fe
+    + `<div class="btn-row" style="margin-top:10px">
+         <button class="btn sm primary" id="nmNext">${last ? "결과 보기 ▸" : "다음 이온 ▸"}</button>
+         ${ion.el ? `<button class="btn sm" id="nmMake">⚡ 이온 만들기에서 만들어 보기</button>` : ""}
+       </div>`;
+}
+function nmSubmit(){
+  const inp = $("#nmIn"); if(!inp || inp.disabled || NM.done) return;
+  const raw = inp.value.replace(/[()（）]/g, "").replace(/\s*이온\s*$/, "").trim();
+  if(!nmNorm(raw)){ inp.focus(); toast("괄호 안에 들어갈 말을 써 주세요"); return; }
+  const ion = NM.q[NM.i], r = nmJudge(ion, raw), hinted = !!NM.h[NM.i];
+  NM.a[NM.i] = {raw, ok:r.ok, note:r.note || "", why:r.why || "", hint:hinted};
+  NM.last[nmKey(ion)] = {raw, ok:r.ok};
+  nmGuard = performance.now() + 400;          /* 한글 입력기의 두 번째 Enter 가 다음 문제로 넘기지 않게 */
+  if(r.ok){
+    NM.streak++;
+    sfx("ok", NM.streak);
+    addScore(hinted ? 5 : 10, $("#nmCard"));
+    unlock("write");
+  } else { NM.streak = 0; sfx("no"); }
+  renderName();
+  const nx = $("#nmNext"); if(nx) nx.focus({preventScroll:true});
+}
+function nmNext(){
+  if(NM.i >= NM.q.length - 1){ NM.done = true; NM.rounds++; }
+  else NM.i++;
+  renderName();
+  const f = $("#nmIn") || $("#nmRetry") || $("#nmAgain"); if(f) f.focus({preventScroll:true});
+}
+function bindName(){
+  const inp = $("#nmIn");
+  if(inp && !inp.disabled){
+    setTimeout(()=>{ if(ST.view==="name" && document.activeElement !== inp) inp.focus({preventScroll:true}); }, 60);
+    inp.addEventListener("keydown", ev=>{
+      if(!(ev.key==="Enter" || ev.code==="Enter" || ev.code==="NumpadEnter" || ev.keyCode===13)) return;
+      ev.preventDefault();
+      if(ev.isComposing || ev.keyCode===229){ nmPend = true; return; }   /* 조합 중인 글자가 확정된 뒤 채점 */
+      if(performance.now() > nmGuard) nmSubmit();
+    });
+    inp.addEventListener("compositionend", ()=>{ if(nmPend){ nmPend = false; setTimeout(nmSubmit, 0); } });
+    inp.addEventListener("blur", ()=>{ nmPend = false; });
+  }
+  const sub = $("#nmSubmit"); if(sub) sub.onclick = nmSubmit;
+  const hb = $("#nmHintBtn"); if(hb) hb.onclick = ()=>{ NM.h[NM.i] = true; NM.hints++; sfx("hint"); renderName(); };
+  const nx = $("#nmNext"); if(nx) nx.onclick = ()=>{ if(performance.now() >= nmGuard) nmNext(); };
+  const mk = $("#nmMake"); if(mk) mk.onclick = ()=>{ const ion = NM.q[NM.i]; inqGo(`ion:${BY_SYM[ion.el].z}:${ion.c}`); };
+}
+function renderNameEnd(){
+  const n = NM.q.length, ok = NM.q.filter((_,k)=>NM.a[k] && NM.a[k].ok).length;
+  const miss = NM.q.filter((_,k)=>!(NM.a[k] && NM.a[k].ok));
+  const pct = n ? Math.round(ok/n*100) : 0;
+  const msg = pct===100 ? "모든 이온의 이름을 맞혔어요! 범위를 바꿔 더 연습해 볼까요? 🎉"
+            : pct>=70   ? "잘했어요. 틀린 이온만 한 번 더 써 보면 완벽해요 👍"
+            :             "이름 붙이는 규칙을 다시 읽고, 틀린 이온부터 차근차근 다시 써 봐요 📖";
+  $("#nmCard").innerHTML = `
+    <div style="text-align:center;padding:14px 6px">
+      <div style="font-size:46px;line-height:1">${pct===100 ? "🏆" : pct>=70 ? "🎯" : "📚"}</div>
+      <div style="font-size:26px;font-weight:900;letter-spacing:-.03em;margin-top:8px">${ok} / ${n} 이온 정답</div>
+      <div style="font-size:14px;color:var(--ink-2);font-weight:700;margin-top:5px">${msg}</div>
+      <div class="btn-row" style="justify-content:center;margin-top:18px">
+        ${miss.length ? `<button class="btn primary" id="nmRetry">✍️ 틀린 이온 다시 쓰기</button>` : ""}
+        <button class="btn${miss.length ? "" : " primary"}" id="nmAgain">새 문제로 다시</button>
+        <button class="btn" id="nmToReport">📄 학습 리포트 만들기</button>
+        <button class="btn" id="nmToDict">📖 이온 사전 보기</button>
+      </div>
+    </div>`;
+  $("#nmSummary").style.display = "block";
+  $("#nmList").innerHTML = NM.q.map((ion,k)=>{
+    const a = NM.a[k] || {};
+    return `<div class="fact"><div class="ic ${a.ok ? "o" : "x"}" role="img" aria-label="${a.ok ? "맞음" : "다시 볼 이온"}">${a.ok ? "✓" : "✗"}</div>
+      <div class="tx"><div class="d">${ionOf(ion)}<span>(${esc(a.raw || "")}) 이온</span>${a.hint ? `<span class="tag-h">힌트 봄</span>` : ""}</div>
+        <div style="font-size:12.5px;color:var(--ink-2);font-weight:600;margin-top:3px">${a.ok ? `정답 — <b>${esc(ion.nm)}</b>` : nmRule(ion)}</div></div></div>`;
+  }).join("");
+  if(!NM.endFx){                                /* 탭을 오갈 때 효과가 되풀이되지 않게 한 번만 */
+    NM.endFx = true;
+    sfx(pct===100 ? "great" : "end");
+    unlock("nm_play");
+    if(pct===100){ unlock("nm_all"); confettiAt($("#nmCard"), 70); }
+  }
+  const retry = $("#nmRetry"); if(retry) retry.onclick = ()=>{ nmNewRound(miss); renderName(); };
+  $("#nmAgain").onclick = ()=>{ nmNewRound(); renderName(); };
+  $("#nmToReport").onclick = openReport;
+  $("#nmToDict").onclick = ()=>switchView("dict");
+}
+$("#nmRange").onclick = ev=>{
+  const b = ev.target.closest("button[data-nr]"); if(!b || b.dataset.nr===NM.range) return;
+  NM.range = b.dataset.nr; nmNewRound(); renderName(); toast("고른 범위로 새 문제를 냈어요");
+};
+$("#nmSet").onclick = ev=>{
+  const b = ev.target.closest("button[data-ns]"); if(!b || b.dataset.ns===NM.set) return;
+  NM.set = b.dataset.ns; nmNewRound(); renderName();
+  toast(NM.set==="all" ? "추가 이온 8종까지 넣어 새 문제를 냈어요" : "교과서 이온으로 새 문제를 냈어요");
+};
+$("#nmRules").onclick = ()=>{
+  const k = THEORY.findIndex(c=>c.t==="이온의 이름 붙이기");
+  theoryOpen(true, k >= 0 ? k : 0);
+};
+
+/* =========================================================================
    6. 이온 명명법 게임 — 제한 시간 · 콤보 · 등급 · 업적 · 결과 이미지
    ========================================================================= */
 
@@ -7120,7 +7407,7 @@ function gmResultCanvas(){
 /* =========================================================================
    학습 리포트 — 서술형 답안 · 연습 결과 · 오답 해설을 PDF(인쇄)로 내려받기
    ========================================================================= */
-const REP_OPT = { inq:true, model:true, quiz:true, wrong:true, game:true, blank:false, key:false };
+const REP_OPT = { inq:true, model:true, name:true, quiz:true, wrong:true, game:true, blank:false, key:false };
 
 /* 빈 학습지의 대표 문제로 낼 이온 — 교과서 수록 이온에서 고정 선정 */
 const SHEET_TO_NAME = ["나트륨 이온","마그네슘 이온","칼슘 이온","알루미늄 이온","암모늄 이온","염화 이온","산화 이온","황화 이온"];
@@ -7166,15 +7453,17 @@ function repSummary(){
   const c = answeredCount(ST.level);
   const qDone = QZ.log.length;
   const qOk = QZ.log.filter(x=>x.ok).length;
+  const nmDone = Object.keys(NM.last).length, nmOk = Object.values(NM.last).filter(x=>x.ok).length;
   const R = GM.result;
   return `
   ${repH("학습 요약")}
   <table class="sumtbl">
     <tr>
-      <th>탐구 질문 작성</th><th>이온 명명법 연습</th><th>이온 명명법 게임</th><th>이온 만들기 미션</th><th>살펴본 원소</th><th>모은 점수</th>
+      <th>탐구 질문 작성</th><th>이온 이름</th><th>이온 명명법 연습</th><th>이온 명명법 게임</th><th>이온 만들기 미션</th><th>살펴본 원소</th><th>모은 점수</th>
     </tr>
     <tr>
       <td class="c">${c.done} / ${c.total} 문항</td>
+      <td class="c">${nmDone ? `${nmOk} / ${nmDone}종 맞힘` : "기록 없음"}</td>
       <td class="c">${qDone ? `${qOk} / ${qDone} 문항 정답 (${Math.round(qOk/qDone*100)}%)` : "기록 없음"}</td>
       <td class="c">${R ? `${esc(R.rank.k)} 등급 · ${R.score.toLocaleString("ko-KR")}점` : "기록 없음"}</td>
       <td class="c">${GAME.missions}회 성공</td>
@@ -7333,6 +7622,76 @@ function repGame(){
   return head + sheet + key;
 }
 
+/* 이온 이름 — 가장 최근 답을 기준으로 ‘다시 볼 이온’을 모아 직접 다시 써 보게 한다 (정답은 맨 아래) */
+const NM_RULE_NOTE = `<div class="note2" style="margin-bottom:8px">
+    <b>기억할 규칙</b> — 양이온은 원소 이름 뒤에 <b>‘~ 이온’</b>, 음이온은 <b>‘~화 이온’</b>.
+    원소 이름이 <b>‘소’로 끝나면 ‘소’를 떼고</b> 붙입니다(염소 → 염화 이온). 다원자 이온은 고유한 이름을 그대로 씁니다.
+  </div>`;
+const NM_BLANK = "(&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;) 이온";
+function repName(){
+  const done = IONS.filter(i=>NM.last[nmKey(i)]);
+  if(!done.length)
+    return repH("이온 이름 연습 결과") + `
+      <div class="rep-blank">아직 연습하지 않았습니다. ‘이온 이름’에서 괄호 채우기를 한 판 풀어 보세요.</div>`;
+  const wrong = done.filter(i=>!NM.last[nmKey(i)].ok);
+  const okN = done.length - wrong.length;
+  const head = repH("이온 이름 연습 결과 — ‘(   ) 이온’ 괄호 채우기") + `
+  <table class="sumtbl">
+    <tr><th>연습한 이온</th><th>가장 최근 답이 맞은 이온</th><th>끝낸 판</th><th>힌트 사용</th></tr>
+    <tr>
+      <td class="c">${done.length}종</td>
+      <td class="c">${okN}종 (${Math.round(okN/done.length*100)}%)</td>
+      <td class="c">${NM.rounds}판</td>
+      <td class="c">${NM.hints}회</td>
+    </tr>
+  </table>`;
+  if(!wrong.length)
+    return head + `<div class="rep-blank" style="margin-top:10px">연습한 이온의 이름을 모두 맞혔습니다. 아주 잘했어요! 🎉</div>`;
+  const sheet = `
+  <div class="gsheet-h">✍️ 다시 써 보기 — 이온식을 보고 <b>괄호 안에 알맞은 말</b>을 써 보세요 (정답은 맨 아래에 있습니다)</div>
+  ${NM_RULE_NOTE}
+  <table class="qtbl">
+    <thead><tr>
+      <th style="width:7%">번호</th><th style="width:18%">이온식</th>
+      <th style="width:13%">양·음이온</th><th>이름 쓰기</th><th style="width:12%">채점</th>
+    </tr></thead>
+    <tbody>${wrong.map((x,i)=>`<tr>
+      <td class="c">${i+1}</td>
+      <td class="c" style="font-size:15pt">${ionOf(x)}</td>
+      <td class="c">${x.c>0 ? "양이온" : "음이온"}</td>
+      <td style="height:32px">${NM_BLANK}</td>
+      <td class="c" style="color:#c9d6e6">○ &nbsp; ✕</td>
+    </tr>`).join("")}</tbody>
+  </table>`;
+  const key = `<div class="rep-key"><b>정답</b> &nbsp;
+    ${wrong.map((x,i)=>`${i+1}. ${ionOf(x)} <b>${esc(x.nm)}</b> <span style="color:#a8b8ca">(연습에서 쓴 답 ${esc(NM.last[nmKey(x)].raw)} 이온)</span>`).join(" &nbsp;·&nbsp; ")}
+  </div>`;
+  return head + sheet + key;
+}
+/* 빈 학습지 — 중학교는 교과서 이온, 고등학교는 추가 이온까지. 양이온·음이온을 번갈아 싣는다 */
+function nmSheetList(){
+  const src = ST.level==="ms" ? IONS.filter(i=>i.src==="tb") : IONS;
+  const cat = src.filter(i=>i.c>0), an = src.filter(i=>i.c<0), out = [];
+  for(let k=0; k<Math.max(cat.length, an.length); k++){ if(cat[k]) out.push(cat[k]); if(an[k]) out.push(an[k]); }
+  return out;
+}
+function repBlankName(){
+  const list = nmSheetList(), half = Math.ceil(list.length/2);
+  const cell = (x,no)=> x
+    ? `<td class="c">${no}</td><td class="c" style="font-size:15pt">${ionOf(x)}</td><td>${NM_BLANK}</td>`
+    : `<td></td><td></td><td></td>`;
+  let rows = "";
+  for(let r=0; r<half; r++) rows += `<tr style="height:34px">${cell(list[r], r+1)}${cell(list[r+half], r+half+1)}</tr>`;
+  return repH("대표 문제 — 이온 이름 괄호 채우기") + NM_RULE_NOTE + `
+  <div style="font-size:10.5pt;font-weight:900;margin:10px 0 6px;color:#2f7fe0">
+    이온식을 보고 괄호 안에 알맞은 말을 쓰시오. (${ST.level==="ms" ? "교과서 이온" : "추가 이온 포함"} ${list.length}종)</div>
+  <table class="qtbl">
+    <thead><tr><th style="width:6%">번호</th><th style="width:13%">이온식</th><th>이름</th>
+      <th style="width:6%">번호</th><th style="width:13%">이온식</th><th>이름</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
 function repFoot(){
   return `
   <div class="rep-sign">
@@ -7391,7 +7750,9 @@ function repAnswerKey(){
   <div class="note2">
     ① ${toName.map((x,i)=>`${i+1}. ${esc(ionPrettyOf(x))} <b>${esc(x.nm)}</b>`).join(" &nbsp;·&nbsp; ")}<br>
     ② ${toFm.map((x,i)=>`${i+1}. ${esc(x.nm)} <b>${esc(ionPrettyOf(x))}</b>`).join(" &nbsp;·&nbsp; ")}
-  </div>`;
+  </div>
+  ${REP_OPT.name ? `<div style="font-size:10.5pt;font-weight:900;margin:12px 0 6px;color:#2f7fe0">이온 이름 괄호 채우기 정답</div>
+  <div class="note2">${nmSheetList().map((x,i)=>`${i+1}. ${ionOf(x)} <b>${esc(nmBase(x))}</b>`).join(" &nbsp;·&nbsp; ")}</div>` : ""}`;
 }
 
 function buildReport(){
@@ -7399,6 +7760,7 @@ function buildReport(){
   let out = repHead() + (REP_OPT.blank ? "" : repSummary());
   if(REP_OPT.inq)  out += repInquiry();
   if(REP_OPT.blank) out += repBlankQuiz();
+  if(REP_OPT.name) out += REP_OPT.blank ? repBlankName() : repName();
   if(REP_OPT.quiz && !REP_OPT.blank) out += repQuiz();
   if(REP_OPT.wrong && !REP_OPT.blank) out += repWrong();
   if(REP_OPT.game && !REP_OPT.blank) out += repGame();
@@ -7411,6 +7773,7 @@ function buildReport(){
 function refreshReport(){
   REP_OPT.inq   = $("#ckInq").checked;
   REP_OPT.model = $("#ckModel").checked;
+  REP_OPT.name  = $("#ckName").checked;
   REP_OPT.quiz  = $("#ckQuiz").checked;
   REP_OPT.wrong = $("#ckWrong").checked;
   REP_OPT.game  = $("#ckGame").checked;
@@ -7515,6 +7878,9 @@ const BADGES = [
   {id:"combo10", ic:"💥", nm:"10연속 정답",    ds:"퀴즈에서 10문제를 연속으로 맞혔어요"},
   {id:"perfect", ic:"🏆", nm:"만점왕",         ds:"퀴즈에서 10문제를 모두 맞혔어요"},
   {id:"speed",   ic:"⏱️", nm:"스피드런",       ds:"타임 어택으로 한 판을 끝냈어요"},
+  /* ----- 이온 이름 (괄호 채우기) ----- */
+  {id:"nm_play", ic:"🏷️", nm:"이름표 붙이기",   ds:"이온 이름 괄호 채우기를 한 판 끝냈어요"},
+  {id:"nm_all",  ic:"🌟", nm:"이름 박사",       ds:"이온 이름 괄호 채우기 한 판을 모두 맞혔어요"},
   /* ----- 이온 명명법 게임 ----- */
   {id:"g_play",  ic:"🎮", nm:"게임 입문",       ds:"이온 명명법 게임을 한 판 끝냈어요"},
   {id:"g_c10",   ic:"🔥", nm:"불타는 10연속",   ds:"게임에서 10문제를 연속으로 맞혔어요"},
@@ -7672,6 +8038,7 @@ function switchView(v){
   if(v==="ion"){  renderIon();  requestAnimationFrame(syncStages); }
   if(v==="obs")  renderObs();
   if(v==="dict") renderDict();
+  if(v==="name") renderName();
   if(v==="inq") paintInqCount();
   if(v==="quiz" && !QZ.list.length) startQuiz();
   if(v==="game"){
@@ -8158,12 +8525,13 @@ function wire(){
       case "ArrowUp":   if(ST.view==="ion"){ ev.preventDefault(); $("#loseE").click(); } break;
       case "ArrowDown": if(ST.view==="ion"){ ev.preventDefault(); $("#gainE").click(); } break;
       case "1": switchView("atom"); break;
-      case "2": switchView("ion"); break;
-      case "3": switchView("obs"); break;
-      case "4": switchView("dict"); break;
-      case "5": switchView("quiz"); break;
-      case "6": switchView("game"); break;
-      case "7": switchView("inq"); break;
+      case "2": switchView("obs"); break;
+      case "3": switchView("ion"); break;
+      case "4": switchView("name"); break;
+      case "5": switchView("dict"); break;
+      case "6": switchView("quiz"); break;
+      case "7": switchView("game"); break;
+      case "8": switchView("inq"); break;
       case "p": case "P": case "ㅔ":
         openPick(ST.view==="ion"?"ion":ST.view==="obs"?"obs":"atom"); break;
       case "n": case "N": case "ㅜ": $("#btnNuc").click(); break;
