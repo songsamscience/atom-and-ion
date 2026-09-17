@@ -5970,14 +5970,15 @@ function makeQuiz(type){
   for(let k=0; list.length<QUIZ_LEN; k++){
     const ion = pool[k % pool.length];
     let t = type;
-    if(type==="mix") t = pick(["f2n","n2f","model","rule"]);
+    /* ‘규칙 확인’은 보기 가운데 고르는 문항뿐이라, 서술형만 풀겠다고 했으면 섞지 않는다 */
+    if(type==="mix") t = pick(QZ.ans==="write" ? ["f2n","n2f","model"] : ["f2n","n2f","model","rule"]);
     if(t==="rule"){ list.push({t:"rule", data:pick(ruleBank())}); continue; }
     if(t==="model" && !ion.el){ list.push({t:"f2n", ion}); continue; }
     list.push({t, ion});
   }
   /* 답하기 방식(객관식 / 서술형 / 섞기)을 문항마다 정해 둔다 */
   list.forEach(it=>{
-    if(it.t==="f2n" || it.t==="n2f")
+    if(it.t==="f2n" || it.t==="n2f" || it.t==="model")
       it.w = QZ.ans==="write" ? true : QZ.ans==="choice" ? false : Math.random()<0.5;
   });
   return shuffle(list).slice(0, QUIZ_LEN);
@@ -6093,20 +6094,39 @@ function renderQuiz(){
     return;
   }
 
-  /* ---------- 모형 → 이온식 (객관식) ---------- */
+  /* ---------- 모형 → 이온식 (객관식 · 서술형) ---------- */
   if(it.t==="model"){
     const e = BY_SYM[ion.el];
     const nE = e.z - ion.c;
     const n2 = Math.abs(ion.c);
-    QZ.cur = {kind:"모형 → 이온식 · 객관식",
+    const write = !!it.w;
+    QZ.cur = {kind: write ? "모형 → 이온식 · 직접 만들기" : "모형 → 이온식 · 객관식",
               q:`양성자 ${e.z}개, 전자 ${nE}개인 입자를 이온식으로 나타내면?`,
               correct:ionPretty(e.sym, "", ion.c)};
-    const correctSup = (n2===1?"":n2) + (ion.c>0?"+":"−");
-    const wrongs = shuffle(wrongSups(ion)).slice(0,3);
-    const opts = shuffle([{o:correctSup, ok:true}, ...wrongs.map(w=>({o:w, ok:false}))]);
+    /* 답하는 자리 — 보기에서 고르거나(객관식), 네모 칸을 채워 만들거나(서술형) */
+    let answerHTML;
+    if(write){
+      answerHTML = `
+      <div class="live-preview" id="qPreview"><span class="ph">네모 칸을 채우면 여기에 완성된 이온식이 나타납니다</span></div>
+      <div id="qSlotWrap"></div>
+      ${padHTML()}
+      <div class="live-hint">파란 네모 칸부터 <b>차례대로</b> 채워집니다.
+        <b>위쪽 작은 칸</b>이 <b>전하</b>예요 — 전자를 <b>잃으면 ＋</b>, <b>얻으면 －</b> 입니다.
+        원소 기호의 대소문자는 <b>자리에 맞게 자동으로 바뀝니다</b>.</div>
+      <div class="btn-row" style="margin-top:11px">
+        <button class="btn primary" id="qSubmit">확인</button>
+        <button class="btn ghost" id="qHint">힌트</button>
+      </div>`;
+    }else{
+      const correctSup = (n2===1?"":n2) + (ion.c>0?"+":"−");
+      const wrongs = shuffle(wrongSups(ion)).slice(0,3);
+      const opts = shuffle([{o:correctSup, ok:true}, ...wrongs.map(w=>({o:w, ok:false}))]);
+      answerHTML = `<div class="q-opts two">${opts.map((o,i)=>`<button class="opt" data-ok="${o.ok?1:0}">
+        <span class="mk">${"ABCD"[i]}</span><span style="font-size:26px">${supHTML(ion, o.o)}</span></button>`).join("")}</div>`;
+    }
     card.innerHTML = `
-      <div class="q-kind">⚛ 모형 → 이온식</div>
-      <div class="q-text">이 입자를 이온식으로 옳게 나타낸 것은?</div>
+      <div class="q-kind">⚛ 모형 → 이온식${write ? " · 타일로 만들기" : " · 객관식"}</div>
+      <div class="q-text">이 입자를 이온식으로 ${write ? "만들어 보세요" : "옳게 나타낸 것은?"}</div>
       <table class="pcount">
         <thead><tr>
           <th>양성자 수</th><th class="hs-only">중성자 수</th><th>전자 수</th><th>원자일 때 원소 기호</th>
@@ -6122,8 +6142,7 @@ function renderQuiz(){
         양성자 수는 그대로이고 <b>전자 수만 달라졌습니다</b> — 잃었는지 얻었는지 세어 보세요.
       </div>
       <div class="q-visual"><div class="qmodel"><div class="atom" id="qAtomBox"></div></div></div>
-      <div class="q-opts two">${opts.map((o,i)=>`<button class="opt" data-ok="${o.ok?1:0}">
-        <span class="mk">${"ABCD"[i]}</span><span style="font-size:26px">${supHTML(ion, o.o)}</span></button>`).join("")}</div>
+      ${answerHTML}
       <div class="q-feedback" id="qFb"></div>`;
     QZ.view = new AtomView($("#qAtomBox"));
     QZ.view.opt.mode = "shell"; QZ.view.opt.labels = false;
@@ -6133,7 +6152,7 @@ function renderQuiz(){
                       sizeK: ion.c>0 ? Math.max(0.84, 1-0.05*ion.c) : Math.min(1.10, 1+0.05*(-ion.c)),
                       charge: ion.c});
     QZ.view.S = 190; QZ.view.build();
-    bindOpts(card, explainIon(ion));
+    if(write) bindFormulaPad(ion); else bindOpts(card, explainIon(ion));
     startTimer();
     return;
   }
